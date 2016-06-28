@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
+
+require 'llibplus'
+
+begin
+  app = LLibPlus::App.new
+  app.run!
+rescue LLibPlus::GenericError => e
+  $stderr.puts e
+  exit! 1
+end
