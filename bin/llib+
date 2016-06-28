@@ -7,6 +7,6 @@ begin
   app = LLibPlus::App.new
   app.run!
 rescue LLibPlus::GenericError => e
-  $stderr.puts e
+  $stderr.puts "Error: #{e.to_s.capitalize}"
   exit! 1
 end

@@ -8,4 +8,7 @@ module LLibPlus
       @reference = ref
     end
   end
+
+  class GraphicError < GenericError
+  end
 end

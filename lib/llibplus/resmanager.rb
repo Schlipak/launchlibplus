@@ -23,12 +23,12 @@ module LLibPlus
 
     def self.loadResources
       absPath = File.realpath File.join(File.dirname(__FILE__), @@path)
-      $stdout.puts "Loading resources from #{absPath}"
+      LLibPlus::Logger.info "Loading resources from #{absPath}"
       glob = File.join(absPath, '*')
       Dir.glob(glob).sort.each do |entry|
         next unless File.file? entry
         name = File.basename(entry).sub(/\.[\w\d]+$/, '')
-        raise LLibPlus::ResourceError.new, "A resource with the name '#{name}' is already defined" unless @@resources[name.to_sym].nil?
+        name += "_#{File.extname(entry).tr('.', '')}"
 
         @@resources[name.to_sym] = Hash.new
 
@@ -47,7 +47,7 @@ module LLibPlus
           }
         end
       end
-      $stdout.puts "#{@@resources.size} resources loaded"
+      LLibPlus::Logger.info "#{@@resources.size} resources loaded"
     end
 
     def self.refresh

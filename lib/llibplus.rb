@@ -8,9 +8,10 @@ module LLibPlus
     def initialize
       @win = Gtk::Window.new 'Launch Library'
       @win.set_wmclass 'llibplus', 'LLibPlus'
-      @win.set_icon File.join(File.dirname(__FILE__), '../res/icon.svg')
+      @win.set_icon File.join(File.dirname(__FILE__), '../res/icon.png')
       @win.set_size_request 900, 600
 
+      LLibPlus::Logger.init
       LLibPlus::ResManager.init.loadResources
 
       self.setupSignals
@@ -79,7 +80,7 @@ module LLibPlus
           :copyright => "© 2016-2017",
           :comments => 'Gtk+ Ruby application for LaunchLibrary.net',
           :website => 'https://launchlibrary.net/',
-          :logo => LLibPlus::ResManager.getPixbuf(:icon, :big)
+          :logo => LLibPlus::ResManager.getPixbuf(:icon_svg, :big)
         })
       end
       helpMenu.append contents
