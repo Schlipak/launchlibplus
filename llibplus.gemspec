@@ -16,7 +16,10 @@ Gem::Specification.new do |spec|
   spec.homepage         = 'http://schlipak.github.io'
   spec.license          = 'MIT'
 
-  spec.files            = Dir.glob('lib/**/*.rb')
+  spec.files            = [
+    Dir.glob('lib/**/*.rb'),
+    Dir.glob('res/**/*')
+  ].flatten.delete_if {|f| not File.file? f}
 
   spec.executables      = ['llib+']
   spec.require_paths    = ['lib']
