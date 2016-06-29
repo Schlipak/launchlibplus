@@ -9,6 +9,9 @@ module LLibPlus
     end
   end
 
+  class InvalidLogLevel < GenericError
+  end
+
   class GraphicError < GenericError
   end
 end

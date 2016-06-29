@@ -4,13 +4,13 @@ require 'logger'
 
 module LLibPlus
   class Logger
-    def self.init
-      @@file = File.open(
-        File.join(Dir.home, 'llibplus.log'),
-        File::CREAT | File::WRONLY | File::APPEND
-      )
-      @@logger = ::Logger.new(@@file, 'daily')
-      @@logger.level = ::Logger::INFO
+    def self.init(loglevel = :WARN)
+      # @@file = File.open(
+      #   File.join(Dir.home, 'llibplus.log'),
+      #   File::CREAT | File::WRONLY | File::APPEND
+      # )
+      @@logger = ::Logger.new STDOUT
+      @@logger.level = ::Logger.const_get loglevel
       @@logger.formatter = proc do |severity, datetime, progname, msg|
         "[#{datetime}]: #{severity} -- #{msg}\n"
       end

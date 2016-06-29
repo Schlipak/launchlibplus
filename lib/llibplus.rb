@@ -6,12 +6,16 @@ Dir[File.dirname(__FILE__) + '/**/*.rb'].each {|f| require f}
 module LLibPlus
   class App
     def initialize
+      @parser = LLibPlus::Parser.new
+      @options = @parser.parse!
+
+      LLibPlus::Logger.init(@options[:loglevel] || :WARN)
+
       @win = Gtk::Window.new 'Launch Library'
       @win.set_wmclass 'llibplus', 'LLibPlus'
       @win.set_icon File.join(File.dirname(__FILE__), '../res/icon.png')
       @win.set_size_request 900, 600
 
-      LLibPlus::Logger.init
       LLibPlus::ResManager.init.loadResources
 
       self.setupSignals
@@ -76,11 +80,12 @@ module LLibPlus
           :name => 'Launch Library Plus',
           :program_name => 'Launch Library Plus',
           :version => "v#{LLibPlus::VERSION_NUMBER} - #{LLibPlus::VERSION_NAME}",
-          :authors => ['Guillaume de Matos'],
+          :authors => ['Guillaume de Matos <g.de.matos@free.fr>'],
+          :license => File.read(File.join(File.dirname(__FILE__), '../LICENSE')),
           :copyright => "© 2016-2017",
           :comments => 'Gtk+ Ruby application for LaunchLibrary.net',
           :website => 'https://launchlibrary.net/',
-          :logo => LLibPlus::ResManager.getPixbuf(:icon_svg, :big)
+          :logo => LLibPlus::ResManager.getPixbuf(:icon_svg, :big) || LLibPlus::ResManager.getPixbuf(:icon_png)
         })
       end
       helpMenu.append contents

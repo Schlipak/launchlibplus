@@ -18,11 +18,13 @@ Gem::Specification.new do |spec|
 
   spec.files            = [
     Dir.glob('lib/**/*.rb'),
-    Dir.glob('res/**/*')
+    Dir.glob('res/**/*'),
+    'LICENSE'
   ].flatten.delete_if {|f| not File.file? f}
 
   spec.executables      = ['llib+']
   spec.require_paths    = ['lib']
 
   spec.add_dependency   'gtk2', '~> 3.0', '>= 3.0.8'
+  spec.add_dependency   'os', '~> 0.9.6'
 end
