@@ -7,7 +7,8 @@ module LLibPlus
       @win.title = 'Launch Library Plus'
       @win.set_wmclass 'llibplus', 'LLibPlus'
       @win.set_icon File.join(File.dirname(__FILE__), '../../res/icon.png')
-      @win.set_size_request 900, 600
+      @win.set_size_request 800, 500
+      @win.set_position Gtk::WindowPosition::CENTER
 
       self.setupSignals
       self.setupLayout
@@ -36,11 +37,13 @@ module LLibPlus
 
       file = Gtk::MenuItem.new({
         :label => 'File',
-        :use_underline => true
+        :use_underline => true,
+        :mnemonic => '_File'
       })
       help = Gtk::MenuItem.new({
         :label => 'Help',
-        :use_underline => true
+        :use_underline => true,
+        :mnemonic => '_Help'
       })
 
       fileMenu = Gtk::Menu.new

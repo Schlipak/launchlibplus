@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-module LLibPlus
+class String
   RIGHT_ARROW   ||= "\uE0B0".freeze
   LEFT_ARROW    ||= "\uE0B2".freeze
   RESET         ||= "\e[0m".freeze
@@ -27,9 +27,7 @@ module LLibPlus
     :invisible  => '8',
     :strike     => '9'
   }
-end
 
-class String
   def initial
     self[0,1]
   end
@@ -44,19 +42,19 @@ class String
     if not h[:mode].nil? then
       if h[:mode].is_a? Array then
         h[:mode].each do |m|
-          options << LLibPlus::MODES_CODES[m.to_sym]
+          options << MODES_CODES[m.to_sym]
         end
       else
-        options << LLibPlus::MODES_CODES[h[:mode]]
+        options << MODES_CODES[h[:mode]]
       end
     else
-      options << LLibPlus::MODES_CODES[:default]
+      options << MODES_CODES[:default]
     end
     if not h[:color].nil? then
-      options << LLibPlus::FG_CODE + LLibPlus::COLOR_CODES[h[:color]]
+      options << FG_CODE + COLOR_CODES[h[:color]]
     end
     if not h[:background].nil? then
-      options << LLibPlus::BG_CODE + LLibPlus::COLOR_CODES[h[:background]]
+      options << BG_CODE + COLOR_CODES[h[:background]]
     end
     code += options.join(';') + 'm'
     return code
@@ -65,7 +63,7 @@ class String
   def colorize(h = {})
     return self if h.empty?
     code = self.getColorCode h
-    code + self + LLibPlus::RESET
+    code + self + RESET
   end
 
   def colorize!(h = {})
@@ -91,21 +89,25 @@ class String
 
   def powerline(opts = {})
     width = opts[:width] || 40
-    arrowChar = LLibPlus::RIGHT_ARROW
+    arrowChar = RIGHT_ARROW
     if opts[:arrow] == :left then
-      arrowChar = LLibPlus::LEFT_ARROW
+      arrowChar = LEFT_ARROW
     end
     if opts[:color] == :white then
       code = self.getColorCode :mode => :bold, :color => :black, :background => :white
     else
-      code = self.getColorCode :mode => [:dim, :bold, :reverse], :color => opts[:color]
+      code = self.getColorCode :mode => [:bold, :reverse], :color => opts[:color]
     end
-    arrowColor = self.getColorCode(:color => opts[:color], :mode => :dim)
+    arrowColor = self.getColorCode(:color => opts[:color], :mode => :bold)
     if opts[:next] then
-      arrowColor = self.getColorCode(:background => opts[:color], :color => opts[:next], :mode => :dim)
+      if opts[:arrow] == :left then
+        arrowColor = self.getColorCode(:background => opts[:color], :color => opts[:next], :mode => :bold)
+      else
+        arrowColor = self.getColorCode(:background => opts[:color], :color => opts[:next], :mode => [:bold, :reverse])
+      end
     end
-    arrowColor = LLibPlus::RESET + arrowColor
-    self.replace "#{code} %-#{width}s #{arrowColor + arrowChar + LLibPlus::RESET}" % self
+    arrowColor = RESET + arrowColor
+    self.replace "#{code} %-#{width}s #{arrowColor + arrowChar + RESET}" % self
     if opts[:newline] then self.replace "\n#{self}" end
     self
   end
