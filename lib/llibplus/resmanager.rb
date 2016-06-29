@@ -29,15 +29,16 @@ module LLibPlus
         next unless File.file? entry
         name = File.basename(entry).sub(/\.[\w\d]+$/, '')
         name += "_#{File.extname(entry).tr('.', '')}"
-        LLibPlus::Logger.debug "Create resource ID :#{name.to_sym}"
+
+        next if OS.windows? and File.extname(entry) == '.svg'
 
         @@resources[name.to_sym] = Hash.new
+        LLibPlus::Logger.debug "Create resource ID :#{name.to_sym}"
 
         pixbuf = Gdk::Pixbuf.new entry
         pixmap, mask = pixbuf.render_pixmap_and_mask 1
         @@svgScales.each do |key, scale|
           if File.extname(entry) == '.svg' then
-            next if OS.windows?
             pixbuf = Gdk::Pixbuf.new entry, scale, scale
             pixmap, mask = pixbuf.render_pixmap_and_mask 1
           end
