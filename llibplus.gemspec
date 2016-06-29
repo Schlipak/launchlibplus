@@ -25,6 +25,6 @@ Gem::Specification.new do |spec|
   spec.executables      = ['llib+']
   spec.require_paths    = ['lib']
 
-  spec.add_dependency   'gtk2', '~> 3.0', '>= 3.0.8'
+  spec.add_dependency   'gtk3', '~> 3.0', '>= 3.0.8'
   spec.add_dependency   'os', '~> 0.9.6'
 end

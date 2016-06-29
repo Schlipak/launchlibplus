@@ -3,7 +3,8 @@
 module LLibPlus
   class MainWindow
     def initialize
-      @win = Gtk::Window.new 'Launch Library'
+      @win = Gtk::Window.new :toplevel
+      @win.title = 'Launch Library Plus'
       @win.set_wmclass 'llibplus', 'LLibPlus'
       @win.set_icon File.join(File.dirname(__FILE__), '../../res/icon.png')
       @win.set_size_request 900, 600
@@ -25,7 +26,7 @@ module LLibPlus
     end
 
     def setupLayout
-      @globalContainer = Gtk::VBox.new false, 10
+      @globalContainer = Gtk::Box.new :vertical, 10
       @win.add @globalContainer
       self.createMenuBar
     end
@@ -33,8 +34,14 @@ module LLibPlus
     def createMenuBar
       @menuBar = Gtk::MenuBar.new
 
-      file = Gtk::MenuItem.new 'File'
-      help = Gtk::MenuItem.new 'Help'
+      file = Gtk::MenuItem.new({
+        :label => 'File',
+        :use_underline => true
+      })
+      help = Gtk::MenuItem.new({
+        :label => 'Help',
+        :use_underline => true
+      })
 
       fileMenu = Gtk::Menu.new
       helpMenu = Gtk::Menu.new
@@ -47,43 +54,80 @@ module LLibPlus
 
       group = Gtk::AccelGroup.new
 
-      exitOption = Gtk::ImageMenuItem.new Gtk::Stock::QUIT, group
+      exitOption = Gtk::ImageMenuItem.new({
+        :stock => Gtk::Stock::QUIT,
+        :accel_group => group
+      })
       exitOption.signal_connect 'activate' do
         Gtk.main_quit
       end
+      exitOption.add_accelerator(
+        'activate', group,
+        Gdk::Keyval::KEY_q,
+        Gdk::ModifierType::CONTROL_MASK,
+        Gtk::AccelFlags::VISIBLE
+      )
       fileMenu.append exitOption
-      contents = Gtk::ImageMenuItem.new Gtk::Stock::HELP, group
-      contents.signal_connect 'activate' do
-        dialog = Gtk::MessageDialog.new(
-          @win,
-          Gtk::Dialog::MODAL,
-          Gtk::MessageDialog::INFO,
-          Gtk::MessageDialog::BUTTONS_OK,
-          "This is where I'd put the help\n\nIF I HAD ONE!"
-        )
+
+      helpOption = Gtk::ImageMenuItem.new({
+        :stock => Gtk::Stock::HELP,
+        :accel_group => group
+      })
+      helpOption.signal_connect 'activate' do
+        dialog = Gtk::MessageDialog.new({
+          :parent => @win,
+          :flags => :modal,
+          :type => :info,
+          :buttons => :ok,
+          :message => "This is where I'd put the help\n\nIF I HAD ONE!"
+        })
         dialog.run
         dialog.destroy
       end
-      about = Gtk::ImageMenuItem.new Gtk::Stock::ABOUT, group
-      about.signal_connect 'activate' do
-        Gtk::AboutDialog.show(@win, {
-          :name => 'Launch Library Plus',
-          :program_name => 'Launch Library Plus',
-          :version => "v#{LLibPlus::VERSION_NUMBER} - #{LLibPlus::VERSION_NAME}",
-          :authors => ['Guillaume de Matos <g.de.matos@free.fr>'],
-          :license => File.read(File.join(File.dirname(__FILE__), '../../LICENSE')),
-          :copyright => "© 2016-2017",
-          :comments => 'Gtk+ Ruby application for LaunchLibrary.net',
-          :website => 'https://launchlibrary.net/',
-          :logo => LLibPlus::ResManager.getPixbuf(:icon_svg, :big) || LLibPlus::ResManager.getPixbuf(:icon_png)
-        })
+      helpOption.add_accelerator(
+        'activate', group,
+        Gdk::Keyval::KEY_F1,
+        0,
+        Gtk::AccelFlags::VISIBLE
+      )
+
+      aboutOption = Gtk::ImageMenuItem.new({
+        :stock => Gtk::Stock::ABOUT,
+        :accel_group => group
+      })
+      aboutOption.signal_connect 'activate' do
+        dialog = Gtk::AboutDialog.new
+        dialog.set_transient_for @win
+        dialog.name = 'Launch Library Plus'
+        dialog.program_name = 'Launch Library Plus'
+        dialog.version = "v#{LLibPlus::VERSION_NUMBER} - #{LLibPlus::VERSION_NAME}"
+        dialog.authors = ['Guillaume de Matos <g.de.matos@free.fr>']
+        dialog.license = File.read(File.join(File.dirname(__FILE__), '../../LICENSE'))
+        dialog.copyright = "© 2016-2017"
+        dialog.comments = 'Gtk+ Ruby application for LaunchLibrary.net'
+        dialog.website = 'https://launchlibrary.net/'
+        dialog.logo = ResManager.getPixbuf(:icon_svg, :big) || ResManager.getPixbuf(:icon_png)
+
+        dialog.run
+        dialog.destroy
       end
-      helpMenu.append contents
-      helpMenu.append about
+      aboutOption.add_accelerator(
+        'activate', group,
+        Gdk::Keyval::KEY_F7,
+        0,
+        Gtk::AccelFlags::VISIBLE
+      )
+
+      helpMenu.append helpOption
+      helpMenu.append aboutOption
 
       @win.add_accel_group group
 
-      @globalContainer.pack_start @menuBar, false, false, 0
+      @globalContainer.pack_start(@menuBar, {
+        :expand => false,
+        :fill => false,
+        :padding => 10
+      })
     end
 
     def run!

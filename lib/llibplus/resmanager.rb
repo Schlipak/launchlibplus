@@ -36,17 +36,17 @@ module LLibPlus
         LLibPlus::Logger.debug "Create resource ID :#{name.to_sym}"
 
         pixbuf = Gdk::Pixbuf.new entry
-        pixmap, mask = pixbuf.render_pixmap_and_mask 1
+        # pixmap, mask = pixbuf.render_pixmap_and_mask 1
         @@svgScales.each do |key, scale|
           if File.extname(entry) == '.svg' then
             pixbuf = Gdk::Pixbuf.new entry, scale, scale
-            pixmap, mask = pixbuf.render_pixmap_and_mask 1
+            # pixmap, mask = pixbuf.render_pixmap_and_mask 1
           end
 
           @@resources[name.to_sym][key] = {
-            :pixbuf => pixbuf,
-            :pixmap => pixmap,
-            :mask => mask
+            :pixbuf => pixbuf
+            # :pixmap => pixmap,
+            # :mask => mask
           }
         end
       end
@@ -66,12 +66,12 @@ module LLibPlus
       @@resources.dig(name, scale, :pixbuf)
     end
 
-    def self.getPixmap(name, scale = :medium)
-      @@resources.dig(name, scale, :pixmap)
-    end
-
-    def self.getMask(name, scale = :medium)
-      @@resources.dig(name, scale, :mask)
-    end
+    # def self.getPixmap(name, scale = :medium)
+    #   @@resources.dig(name, scale, :pixmap)
+    # end
+    #
+    # def self.getMask(name, scale = :medium)
+    #   @@resources.dig(name, scale, :mask)
+    # end
   end
 end

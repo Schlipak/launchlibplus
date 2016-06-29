@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require 'gtk2'
+require 'gtk3'
 Dir[File.dirname(__FILE__) + '/**/*.rb'].each {|f| require f}
 
 module LLibPlus
