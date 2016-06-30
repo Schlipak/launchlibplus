@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-require 'os'
-
 module LLibPlus
   class ResourceError < StandardError
   end

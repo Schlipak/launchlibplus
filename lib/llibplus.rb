@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
 require 'gtk3'
+require 'os'
+
+Gtk::Settings.default.gtk_theme_name = 'win32' if OS.windows?
+
 Dir[File.dirname(__FILE__) + '/**/*.rb'].each {|f| require f}
 
 module LLibPlus
