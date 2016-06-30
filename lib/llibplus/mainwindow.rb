@@ -2,10 +2,12 @@
 
 module LLibPlus
   class MainWindow
+    WINDOW_CLASS = ['llibplus', 'LLibPlus']
+
     def initialize
       @win = Gtk::Window.new :toplevel
       @win.title = 'Launch Library Plus'
-      @win.set_wmclass 'llibplus', 'LLibPlus'
+      @win.set_wmclass *WINDOW_CLASS
       @win.set_icon File.join(File.dirname(__FILE__), '../../res/icon.png')
       @win.set_size_request 800, 500
       @win.set_position Gtk::WindowPosition::CENTER
