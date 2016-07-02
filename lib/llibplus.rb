@@ -19,12 +19,12 @@ gschema_bin = "#{resource_path}/gschemas.compiled"
 system("glib-compile-schemas", resource_path)
 
 at_exit do
-  ::FileUtils.rm_f([gresource_bin, gschema_bin])
+  FileUtils.rm_f([gresource_bin, gschema_bin])
 end
 
 resource = Gio::Resource.load(gresource_bin)
 Gio::Resources.register(resource)
-ENV["GSETTINGS_SCHEMA_DIR"] = resource_path
+ENV['GSETTINGS_SCHEMA_DIR'] = resource_path
 
 module LLibPlus
   class App

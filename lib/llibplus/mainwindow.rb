@@ -32,6 +32,43 @@ module LLibPlus
       @globalContainer = Gtk::Box.new :vertical, 10
       @win.add @globalContainer
       self.createMenuBar
+
+      @contentContainer = Gtk::Paned.new :horizontal
+      @contentContainer.border_width = 10
+      @globalContainer.pack_start(@contentContainer, {
+        :expand => true,
+        :fill => true,
+        :padding => 10
+      })
+
+      @menuContainer = Gtk::Box.new :vertical, 10
+      @menuContainer.set_size_request 300, -1
+      @overlay = Gtk::Overlay.new
+      @overlay.set_size_request 300, -1
+      @notebook = Gtk::Notebook.new
+
+      @contentContainer.pack1(@menuContainer, {
+        :resize => false,
+        :shrink => false
+      })
+      @contentContainer.pack2(@overlay, {
+        :resize => true,
+        :shrink => false
+      })
+
+      @overlay.add_overlay LLibPlus::ResManager.getImage(:bg_png)
+
+      @menuFrame = Gtk::Frame.new 'Menu'
+      @menuContainer.pack_start(@menuFrame, {
+        :expand => true,
+        :fill => true,
+        :padding => 0
+      })
+      @notebookPage1 = Gtk::Box.new :vertical, 10
+      @notebookPage1.pack_start Gtk::Button.new(:label => 'CONTENT 1')
+      @notebook.append_page @notebookPage1
+
+      @overlay.add_overlay @notebook
     end
 
     def createMenuBar
@@ -156,6 +193,7 @@ module LLibPlus
 
     def run!
       @win.show_all
+      @notebook.hide
       Gtk.main
     end
   end
