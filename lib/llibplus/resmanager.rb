@@ -13,7 +13,7 @@ module LLibPlus
       :large => 512
     }.freeze
 
-    def self.init(path = '../../res')
+    def self.init(path = '../../res/img')
       @@path = path
       @@resources = Hash.new
       self

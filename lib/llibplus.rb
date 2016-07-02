@@ -2,10 +2,29 @@
 
 require 'gtk3'
 require 'os'
-require 'erb'
+require 'fileutils'
 
 Gtk::Settings.default.gtk_theme_name = 'win32' if OS.windows?
 Dir[File.dirname(__FILE__) + '/**/*.rb'].each {|f| require f}
+
+resource_path = File.realpath(File.join(File.dirname(__FILE__), '../res/ui'))
+gresource_bin = "#{resource_path}/llibplus.gresource"
+gresource_xml = "#{resource_path}/llibplus.gresource.xml"
+
+system("glib-compile-resources",
+       "--target", gresource_bin,
+       "--sourcedir", resource_path,
+       gresource_xml)
+gschema_bin = "#{resource_path}/gschemas.compiled"
+system("glib-compile-schemas", resource_path)
+
+at_exit do
+  ::FileUtils.rm_f([gresource_bin, gschema_bin])
+end
+
+resource = Gio::Resource.load(gresource_bin)
+Gio::Resources.register(resource)
+ENV["GSETTINGS_SCHEMA_DIR"] = resource_path
 
 module LLibPlus
   class App
@@ -18,7 +37,7 @@ module LLibPlus
       "Terminal=false",
       "Type=Application",
       "Comment=Gtk+ Ruby client for LaunchLibrary.net",
-      "Icon=#{File.realpath(File.join(File.dirname(__FILE__), '../res/icon.svg'))}",
+      "Icon=#{File.realpath(File.join(File.dirname(__FILE__), '../res/img/icon.svg'))}",
       "Categories=Application;"
     ].join("\n")
 

@@ -8,7 +8,7 @@ module LLibPlus
       @win = Gtk::Window.new :toplevel
       @win.title = 'Launch Library Plus'
       @win.set_wmclass *WINDOW_CLASS
-      @win.set_icon File.join(File.dirname(__FILE__), '../../res/icon.png')
+      @win.set_icon File.join(File.dirname(__FILE__), '../../res/img/icon.png')
       @win.set_size_request 800, 500
       @win.set_position Gtk::WindowPosition::CENTER
 
@@ -58,6 +58,25 @@ module LLibPlus
       @menuBar.append help
 
       group = Gtk::AccelGroup.new
+
+      parametersOption = Gtk::ImageMenuItem.new({
+        :stock => Gtk::Stock::PREFERENCES,
+        :accel_group => group
+      })
+      parametersOption.signal_connect 'activate' do
+        LLibPlus::Preferences.new({
+          :transient_for => @win,
+          :use_header_bar => 1
+        }).run
+      end
+      parametersOption.add_accelerator(
+        'activate', group,
+        Gdk::Keyval::KEY_p,
+        Gdk::ModifierType::CONTROL_MASK,
+        Gtk::AccelFlags::VISIBLE
+      )
+      fileMenu.append parametersOption
+      fileMenu.append Gtk::SeparatorMenuItem.new
 
       exitOption = Gtk::ImageMenuItem.new({
         :stock => Gtk::Stock::QUIT,
