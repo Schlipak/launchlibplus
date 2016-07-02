@@ -9,7 +9,7 @@ module LLibPlus
       @win.title = 'Launch Library Plus'
       @win.set_wmclass *WINDOW_CLASS
       @win.set_icon File.join(File.dirname(__FILE__), '../../res/img/icon.png')
-      @win.set_size_request 800, 500
+      @win.set_size_request 900, 600
       @win.set_position Gtk::WindowPosition::CENTER
 
       self.setupSignals
@@ -29,7 +29,7 @@ module LLibPlus
     end
 
     def setupLayout
-      @globalContainer = Gtk::Box.new :vertical, 10
+      @globalContainer = Gtk::Box.new :vertical, 0
       @win.add @globalContainer
       self.createMenuBar
 
@@ -41,7 +41,7 @@ module LLibPlus
         :padding => 10
       })
 
-      @menuContainer = Gtk::Box.new :vertical, 10
+      @menuContainer = Gtk::Box.new :vertical, 0
       @menuContainer.set_size_request 300, -1
       @overlay = Gtk::Overlay.new
       @overlay.set_size_request 300, -1
@@ -56,7 +56,8 @@ module LLibPlus
         :shrink => false
       })
 
-      @overlay.add_overlay LLibPlus::ResManager.getImage(:bg_png)
+      img = LLibPlus::ResManager.getImage(:bg_png)
+      @overlay.add_overlay img
 
       @menuFrame = Gtk::Frame.new 'Menu'
       @menuContainer.pack_start(@menuFrame, {
