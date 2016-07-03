@@ -74,6 +74,7 @@ module LLibPlus
       )
 
       @exitOption.signal_connect 'activate' do
+        LLibPlus::ThreadManager.finalize
         Gtk.main_quit
       end
       @exitOption.add_accelerator(

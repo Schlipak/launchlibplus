@@ -20,6 +20,7 @@ module LLibPlus
       Signal.trapEach :SIGINT, :SIGTERM do |sig|
         sig = Signal.list.key(sig) || 'Unknown'
         $stderr.puts "\r*** Received SIG#{sig} ***"
+        LLibPlus::ThreadManager.finalize
         exit! 0
       end
 
