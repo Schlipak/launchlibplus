@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 module LLibPlus
-  class ResourceError < StandardError
-  end
+  ResourceError = Class.new(StandardError)
 
   class ResManager
     @@svgScales = {
@@ -19,7 +18,7 @@ module LLibPlus
       self
     end
 
-    def self.loadResources
+    def self.load_resources
       absPath = File.realpath File.join(File.dirname(__FILE__), @@path)
       LLibPlus::Logger.info "Loading resources from #{absPath}"
       glob = File.join(absPath, '*')
@@ -29,6 +28,7 @@ module LLibPlus
         name += "_#{File.extname(entry).tr('.', '')}"
 
         next if OS.windows? and File.extname(entry) == '.svg'
+        next if File.extname(entry) == '.xcf'
 
         @@resources[name.to_sym] = Hash.new
         LLibPlus::Logger.debug "Create resource ID :#{name.to_sym}"
@@ -52,18 +52,18 @@ module LLibPlus
 
     def self.refresh
       @@resources.clear
-      self.loadResources
+      self.load_resources
     end
 
-    def self.getResource(name)
+    def self.get_resource(name)
       @@resources[name]
     end
 
-    def self.getPixbuf(name, scale = :medium)
+    def self.get_pixbuf(name, scale = :medium)
       @@resources.dig(name, scale, :pixbuf)
     end
 
-    def self.getImage(name, scale = :medium)
+    def self.get_image(name, scale = :medium)
       @@resources.dig(name, scale, :image)
     end
   end

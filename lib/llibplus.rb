@@ -41,32 +41,32 @@ module LLibPlus
       "Categories=Application;"
     ].join("\n")
 
-    def createDesktopEntry(filename, action = 'Creating')
+    def create_desktop_entry(filename, action = 'Creating')
       LLibPlus::Logger.info "#{action} desktop file at #{filename}"
       fd = File.new filename, 'w+'
       fd.puts DATA
       fd.close
     end
 
-    def updateDesktopEntry(filename)
+    def update_desktop_entry(filename)
       version = nil
       File.new(filename).each_line do |line|
         if /^\s*Exec=(.*)$/.match line then
           if $1 != File.realpath(File.join(File.dirname(__FILE__), '../bin/llib+')) then
             File.truncate filename, 0
-            return self.send(:createDesktopEntry, filename, 'Updating')
+            return self.send(:create_desktop_entry, filename, 'Updating')
           end
         end
       end
     end
 
-    def checkDesktopEntry
+    def check_desktop_entry
       return unless OS.posix?
       path = File.join(Dir.home, '.local/share/applications')
       return unless File.exist? path
       filename = File.join(path, "#{LLibPlus::MainWindow::WINDOW_CLASS.first}.desktop")
-      return self.send(:createDesktopEntry, filename) unless File.exist? filename
-      self.send(:updateDesktopEntry, filename)
+      return self.send(:create_desktop_entry, filename) unless File.exist? filename
+      self.send(:update_desktop_entry, filename)
     end
 
     public
@@ -76,9 +76,9 @@ module LLibPlus
 
       LLibPlus::Logger.init(@options[:loglevel] || :WARN)
 
-      self.send :checkDesktopEntry
+      self.send :check_desktop_entry
 
-      LLibPlus::ResManager.init.loadResources
+      LLibPlus::ResManager.init.load_resources
       @win = LLibPlus::MainWindow.new
     end
 

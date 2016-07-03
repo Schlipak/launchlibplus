@@ -12,11 +12,11 @@ module LLibPlus
       def initialize(args)
         super(args)
 
-        self.setupLayout
+        self.setup_layout
         self
       end
 
-      def setupLayout
+      def setup_layout
         nil
       end
 

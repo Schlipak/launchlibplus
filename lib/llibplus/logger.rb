@@ -14,10 +14,10 @@ module LLibPlus
       @@logger.formatter = proc do |severity, datetime, progname, msg|
         "[#{datetime}]: #{severity} -- #{msg}\n"
       end
-      self.defineSingletonMethods
+      self.define_singleton_methods
     end
 
-    def self.defineSingletonMethods
+    def self.define_singleton_methods
       ::Logger::Severity.constants.each do |level|
         define_singleton_method(level.to_s.downcase) do |*args|
           @@logger.send(level.to_s.downcase.to_sym, *args)
