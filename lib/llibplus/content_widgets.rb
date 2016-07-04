@@ -46,6 +46,8 @@ module LLibPlus
   class MainContent < Gtk::Overlay
     attr_reader :stack, :logoImage
 
+    PAGES = ['Launches', 'Missions', 'Vehicules'].freeze
+
     def initialize
       super
       self.set_size_request 300, -1
@@ -56,10 +58,14 @@ module LLibPlus
       self.add_logo_background
       self.add_overlay @container
 
+      @pages = Array.new
       self.init_stack
       self.init_stack_switcher
 
-      @container.pack_start @stackSwitcher
+      @container.pack_start(
+        @stackSwitcher,
+        :padding => 10
+      )
       @container.pack_start @stack
     end
 
@@ -79,26 +85,25 @@ module LLibPlus
       @stack.set_transition_duration 400
       @stack.set_transition_type Gtk::Stack::TransitionType::SLIDE_LEFT_RIGHT
 
-      @launchesPage = Gtk::Box.new :vertical, 10
-      @launchesPage.pack_start Gtk::Button.new(:label => 'LAUNCHES')
-      @stack.add_titled(
-        @launchesPage,
-        'Launches', 'Launches'
-      )
+      PAGES.each do |name|
+        newPage = Hash.new
+        @pages << newPage
+        newPage[:name] = name
 
-      @missionsPage = Gtk::Box.new :vertical, 10
-      @missionsPage.pack_start Gtk::Button.new(:label => 'MISSIONS')
-      @stack.add_titled(
-        @missionsPage,
-        'Missions', 'Missions'
-      )
+        newPage[:window] = Gtk::ScrolledWindow.new(nil, nil)
+        newPage[:window].vexpand = true
+        newPage[:window].set_kinetic_scrolling true
 
-      @vehiculesPage = Gtk::Box.new :vertical, 10
-      @vehiculesPage.pack_start Gtk::Button.new(:label => 'VEHICULES')
-      @stack.add_titled(
-        @vehiculesPage,
-        'Vehicules', 'Vehicules'
-      )
+        newPage[:content] = Gtk::Box.new :vertical
+        30.times do
+          newPage[:content].pack_start(
+            Gtk::Button.new(:label => name),
+            :padding => 2
+          )
+        end
+        newPage[:window].add newPage[:content]
+        @stack.add_titled(newPage[:window], name, name)
+      end
     end
 
     def init_stack_switcher
