@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+require 'launchy'
+
 module LLibPlus
   class MenuBar < Gtk::MenuBar
     def initialize(win)
@@ -91,15 +93,13 @@ module LLibPlus
         Gtk::AccelFlags::VISIBLE
       )
       @helpOption.signal_connect 'activate' do
-        dialog = Gtk::MessageDialog.new({
+        dialog = LLibPlus::HelpDialog.new({
+          :title => 'Help',
           :parent => @win,
+          :transient_for => @win,
           :flags => :modal,
-          :type => :info,
-          :buttons => :ok,
-          :message => "This is where I'd put the help\n\nIF I HAD ONE!"
-        })
-        dialog.run
-        dialog.destroy
+          :type => :info
+        }).run!
       end
 
       @aboutOption.add_accelerator(
@@ -126,6 +126,39 @@ module LLibPlus
       end
 
       @win.add_accel_group @accel_group
+    end
+  end
+
+  class HelpDialog < Gtk::Dialog
+    def initialize(args)
+      super
+
+      self.add_button Gtk::Stock::CLOSE, :accept
+      self.setup_content
+    end
+
+    def setup_content
+      self.child.set_size_request 250, 150
+
+      @issueButton = Gtk::Button.new(:label => 'Open an issue on Github')
+      @issueButton.signal_connect 'clicked' do
+        Launchy.open 'https://github.com/Schlipak/launchlibplus/issues'
+      end
+      @issueButton.border_width = 2
+      self.child.pack_start(@issueButton)
+
+      @websiteButton = Gtk::Button.new(:label => 'LaunchLibrary.net')
+      @websiteButton.signal_connect 'clicked' do
+        Launchy.open 'https://launchlibrary.net/'
+      end
+      @websiteButton.border_width = 2
+      self.child.pack_start(@websiteButton)
+    end
+
+    def run!
+      self.show_all
+      self.run
+      self.destroy
     end
   end
 end

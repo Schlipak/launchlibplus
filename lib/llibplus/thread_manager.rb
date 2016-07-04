@@ -8,9 +8,10 @@ module LLibPlus
     def self.add_job
       self.clean_threads
       @@semaphone.synchronize do
-        thr = Thread.new { yield }
+        thr = Thread.new { yield Thread.current }
         @@threads << thr
         LLibPlus::Logger.debug "Creating #{thr}"
+        return thr
       end
     end
 
@@ -35,7 +36,7 @@ module LLibPlus
       @@threads.each do |thr|
         @@threads.delete thr
         next unless thr.alive?
-        LLibPlus::Logger.info "Terminating #{thr}"
+        LLibPlus::Logger.debug "Terminating #{thr}"
         Thread.kill thr
       end
     end

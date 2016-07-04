@@ -4,13 +4,18 @@ module LLibPlus
   ResourceError = Class.new(StandardError)
 
   class ResManager
-    @@svgScales = {
+    SVG_SCALES = {
       :tiny => 48,
       :small => 64,
       :medium => 128,
       :big => 256,
       :large => 512
     }.freeze
+
+    FILE_EXTENSIONS = [
+      '.jpg', '.jpeg',
+      '.png', '.gif', '.svg'
+    ].freeze
 
     def self.init(path = '../../res/img')
       @@path = path
@@ -27,14 +32,14 @@ module LLibPlus
         name = File.basename(entry).sub(/\.[\w\d]+$/, '')
         name += "_#{File.extname(entry).tr('.', '')}"
 
+        next unless FILE_EXTENSIONS.include? File.extname(entry)
         next if OS.windows? and File.extname(entry) == '.svg'
-        next if File.extname(entry) == '.xcf'
 
         @@resources[name.to_sym] = Hash.new
         LLibPlus::Logger.debug "Create resource ID :#{name.to_sym}"
 
         pixbuf = Gdk::Pixbuf.new entry
-        @@svgScales.each do |key, scale|
+        SVG_SCALES.each do |key, scale|
           if File.extname(entry) == '.svg' then
             pixbuf = Gdk::Pixbuf.new entry, scale, scale
           end

@@ -31,23 +31,36 @@ module LLibPlus
         if @mainContent.logoImage.running?
           @mainContent.logoImage.stop
         else
+          @mainContent.stack_visible = false
           @mainContent.logoImage.start
+          ThreadManager.add_job do
+            sleep 2
+            @mainContent.logoImage.stop
+            @mainContent.stack_visible = true
+          end
         end
       end
     end
   end
 
   class MainContent < Gtk::Overlay
-    attr_reader :notebook, :logoImage
+    attr_reader :stack, :logoImage
 
     def initialize
       super
       self.set_size_request 300, -1
       self.border_width = 10
 
-      @notebook = Gtk::Notebook.new
+      @container = Gtk::Box.new :vertical
+      @container.border_width = 10
       self.add_logo_background
-      self.init_notebook
+      self.add_overlay @container
+
+      self.init_stack
+      self.init_stack_switcher
+
+      @container.pack_start @stackSwitcher
+      @container.pack_start @stack
     end
 
     def add_logo_background
@@ -61,20 +74,47 @@ module LLibPlus
       @logoImage.pauseFrame = 6
     end
 
-    def init_notebook
-      @page1 = Gtk::Box.new :vertical, 10
-      @page1.pack_start Gtk::Button.new(:label => 'CONTENT 1')
-      @notebook.append_page @page1
+    def init_stack
+      @stack = Gtk::Stack.new
+      @stack.set_transition_duration 400
+      @stack.set_transition_type Gtk::Stack::TransitionType::SLIDE_LEFT_RIGHT
 
-      self.add_overlay @notebook
+      @launchesPage = Gtk::Box.new :vertical, 10
+      @launchesPage.pack_start Gtk::Button.new(:label => 'LAUNCHES')
+      @stack.add_titled(
+        @launchesPage,
+        'Launches', 'Launches'
+      )
+
+      @missionsPage = Gtk::Box.new :vertical, 10
+      @missionsPage.pack_start Gtk::Button.new(:label => 'MISSIONS')
+      @stack.add_titled(
+        @missionsPage,
+        'Missions', 'Missions'
+      )
+
+      @vehiculesPage = Gtk::Box.new :vertical, 10
+      @vehiculesPage.pack_start Gtk::Button.new(:label => 'VEHICULES')
+      @stack.add_titled(
+        @vehiculesPage,
+        'Vehicules', 'Vehicules'
+      )
     end
 
-    def notebook_visible=(b)
+    def init_stack_switcher
+      @stackSwitcher = Gtk::StackSwitcher.new
+      @stackSwitcher.set_stack @stack
+      @stackSwitcher.children.each do |child|
+        child.hexpand = true
+      end
+    end
+
+    def stack_visible=(b)
       raise ArgumentError, "Unsupported argument type #{b.class.class}:#{b.class}" unless [true, false].include? b
       if b
-        @notebook.show
+        @container.show_all
       else
-        @notebook.hide
+        @container.hide
       end
     end
   end

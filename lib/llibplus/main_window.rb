@@ -6,6 +6,7 @@ module LLibPlus
 
     def initialize
       @win = Gtk::Window.new :toplevel
+      $win = @win
       @win.title = 'Launch Library Plus'
       @win.set_wmclass *WINDOW_CLASS
       @win.set_icon File.join(File.dirname(__FILE__), '../../res/img/icon.png')
@@ -68,7 +69,7 @@ module LLibPlus
 
     def run!
       @win.show_all
-      @mainContent.notebook_visible = false
+      @mainContent.stack_visible = false
       Gtk.main
     end
   end
