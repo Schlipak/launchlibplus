@@ -6,20 +6,20 @@ module LLibPlus
     @@threads = Array.new
 
     def self.add_job
+      self.clean_threads
       @@semaphone.synchronize do
         thr = Thread.new { yield }
         @@threads << thr
         LLibPlus::Logger.debug "Creating #{thr}"
       end
-      self.clean_threads
     end
 
     def self.register(thr)
+      self.clean_threads
       @@semaphone.synchronize do
         @@threads << thr if thr.is_a? Thread
         LLibPlus::Logger.debug "Registering #{thr}"
       end
-      self.clean_threads
     end
 
     def self.clean_threads
