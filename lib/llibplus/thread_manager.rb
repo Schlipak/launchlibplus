@@ -7,29 +7,36 @@ module LLibPlus
 
     def self.add_job
       @@semaphone.synchronize do
-        @@threads << Thread.new do
-          yield
-        end
+        thr = Thread.new { yield }
+        @@threads << thr
+        LLibPlus::Logger.debug "Creating #{thr}"
+      end
+      self.clean_threads
+    end
+
+    def self.register(thr)
+      @@semaphone.synchronize do
+        @@threads << thr if thr.is_a? Thread
+        LLibPlus::Logger.debug "Registering #{thr}"
       end
       self.clean_threads
     end
 
     def self.clean_threads
       @@semaphone.synchronize do
-        @@threads.each do |th|
-          @@threads.delete(th) if th.stop?
+        @@threads.each do |thr|
+          @@threads.delete(thr) unless thr.alive?
+          LLibPlus::Logger.debug "Cleaning #{thr}" unless thr.alive?
         end
       end
     end
 
     def self.finalize
-      @@semaphone.synchronize do
-        @@threads.each do |th|
-          @@threads.delete th
-          next if th.stop?
-          LLibPlus::Logger.info "Terminating #{th}"
-          Thread.kill th
-        end
+      @@threads.each do |thr|
+        @@threads.delete thr
+        next unless thr.alive?
+        LLibPlus::Logger.info "Terminating #{thr}"
+        Thread.kill thr
       end
     end
   end

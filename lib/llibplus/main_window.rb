@@ -43,8 +43,8 @@ module LLibPlus
         :padding => 0
       })
 
-      @sidebar = LLibPlus::Sidebar.new
       @mainContent = LLibPlus::MainContent.new
+      @sidebar = LLibPlus::Sidebar.new @mainContent
 
       @contentContainer.pack1(@sidebar, {
         :resize => false,

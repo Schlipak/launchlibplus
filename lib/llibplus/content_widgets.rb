@@ -11,8 +11,10 @@ module LLibPlus
   class Sidebar < Gtk::Box
     attr_reader :frame
 
-    def initialize
+    def initialize(mainContent)
       super(:vertical, 0)
+      @mainContent = mainContent
+
       self.set_size_request 300, -1
       self.border_width = 10
 
@@ -22,11 +24,21 @@ module LLibPlus
         :fill => true,
         :padding => 0
       })
+
+      @button = Gtk::Button.new :label => 'Animate'
+      @frame.add @button
+      @button.signal_connect 'clicked' do
+        if @mainContent.logoImage.running?
+          @mainContent.logoImage.stop
+        else
+          @mainContent.logoImage.start
+        end
+      end
     end
   end
 
   class MainContent < Gtk::Overlay
-    attr_reader :notebook
+    attr_reader :notebook, :logoImage
 
     def initialize
       super
@@ -39,38 +51,14 @@ module LLibPlus
     end
 
     def add_logo_background
-      frame = 0
-      buf = Gdk::Pixbuf.new(
-        Gdk::Pixbuf::COLORSPACE_RGB,
-        true, 8,
-        200, 256
+      @logoImage = LLibPlus::Animation.new(
+        LLibPlus::ResManager.get_pixbuf(:anim_rocket_png),
+        100, 128, 30,
+        6
       )
-      LLibPlus::ResManager.get_pixbuf(:rocket_anim_png).copy_area(
-        200 * frame, 0,
-        200, 256,
-        buf, 0, 0
-      )
-      @logoImage = Gtk::Image.new
-      @logoImage.set_from_pixbuf buf
-      self.add_overlay @logoImage unless @logoImage.nil?
-      return if @logoImage.nil?
-      LLibPlus::ThreadManager.add_job do
-        loop do
-          frame = (frame + 1) % 8
-          buf = Gdk::Pixbuf.new(
-            Gdk::Pixbuf::COLORSPACE_RGB,
-            true, 8,
-            200, 256
-          )
-          LLibPlus::ResManager.get_pixbuf(:rocket_anim_png).copy_area(
-            200 * frame, 0,
-            200, 256,
-            buf, 0, 0
-          )
-          @logoImage.set_from_pixbuf buf
-          sleep 0.5
-        end
-      end
+      self.add_overlay @logoImage
+      @logoImage.timing = 0.05
+      @logoImage.pauseFrame = 6
     end
 
     def init_notebook

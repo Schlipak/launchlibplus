@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-require 'logger'
+require 'mono_logger'
 
 module LLibPlus
   class Logger
@@ -9,8 +9,8 @@ module LLibPlus
       #   File.join(Dir.home, 'llibplus.log'),
       #   File::CREAT | File::WRONLY | File::APPEND
       # )
-      @@logger = ::Logger.new STDOUT
-      @@logger.level = ::Logger.const_get loglevel
+      @@logger = ::MonoLogger.new STDOUT
+      @@logger.level = ::MonoLogger.const_get loglevel
       @@logger.formatter = proc do |severity, datetime, progname, msg|
         "[#{datetime}]: #{severity} -- #{msg}\n"
       end
@@ -18,7 +18,7 @@ module LLibPlus
     end
 
     def self.define_singleton_methods
-      ::Logger::Severity.constants.each do |level|
+      ::MonoLogger::Severity.constants.each do |level|
         define_singleton_method(level.to_s.downcase) do |*args|
           @@logger.send(level.to_s.downcase.to_sym, *args)
         end
