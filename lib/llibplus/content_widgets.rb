@@ -33,7 +33,7 @@ module LLibPlus
         else
           @mainContent.stack_visible = false
           @mainContent.logoImage.start
-          ThreadManager.add_job do
+          ThreadManager.add do
             sleep 2
             @mainContent.logoImage.stop
             @mainContent.stack_visible = true
@@ -100,10 +100,11 @@ module LLibPlus
 
         newPage[:content] = Gtk::Box.new :vertical
         30.times do
-          newPage[:content].pack_start(
-            Gtk::Button.new(:label => name),
-            :padding => 2
-          )
+          btn = Gtk::Button.new(:label => name)
+          newPage[:content].pack_start(btn, :padding => 2)
+          btn.signal_connect 'clicked' do
+            DataFetcher.new.fetch nil
+          end
         end
         newPage[:window].add newPage[:content]
         @stack.add_titled(newPage[:window], name, name)
@@ -132,6 +133,41 @@ module LLibPlus
       else
         @stack.hide
       end
+    end
+  end
+
+  class StatusBar < Gtk::Box
+    attr_reader :status, :progress
+
+    def initialize
+      super(:horizontal)
+      self.set_homogeneous true
+      self.border_width = 0
+
+      @status = Gtk::Statusbar.new
+      @progress = Gtk::ProgressBar.new
+      @context = @status.get_context_id 'Status'
+
+      self.pack_start(@status, {
+        :resize => true,
+        :fill => true,
+        :shrink => true,
+        :padding => 0
+      })
+      self.pack_start(@progress, {
+        :resize => true,
+        :fill => true,
+        :shrink => true,
+        :padding => 10
+      })
+
+      @status.push @context, 'TEST STATUS'
+    end
+  end
+
+  class Card < Gtk::Grid
+    def initialize(*args)
+      super
     end
   end
 end

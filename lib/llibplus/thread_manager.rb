@@ -5,7 +5,7 @@ module LLibPlus
     @@semaphone = Mutex.new
     @@threads = Array.new
 
-    def self.add_job
+    def self.add
       self.clean_threads
       @@semaphone.synchronize do
         thr = Thread.new { yield Thread.current }
@@ -39,6 +39,43 @@ module LLibPlus
         LLibPlus::Logger.debug "Terminating #{thr}"
         Thread.kill thr
       end
+    end
+
+  end
+
+  class JobQueue
+    @@queue = Queue.new
+    @@worker = nil
+
+    def self.push(&job)
+      LLibPlus::Logger.debug "Pushing job #{self.job_inspect(job)}"
+      @@queue << job
+      self.start_worker if @@worker.nil?
+    end
+
+    def self.stop
+      return if @@worker.nil?
+      GLib::Source.remove @@worker
+      @@worker = nil
+    end
+
+    def self.start_worker
+      @@worker = GLib::Idle.add do
+        job = @@queue.pop
+        LLibPlus::Logger.debug "Running job #{self.job_inspect(job)}"
+        job.call
+        if @@queue.empty?
+          @@worker = nil
+          GLib::Source::REMOVE
+        else
+          GLib::Source::CONTINUE
+        end
+      end
+    end
+
+    private
+    def self.job_inspect(job)
+      "#<#{job.class}:#{job.address}>"
     end
   end
 end

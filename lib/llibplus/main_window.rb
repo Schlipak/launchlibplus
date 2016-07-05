@@ -55,6 +55,20 @@ module LLibPlus
         :resize => true,
         :shrink => false
       })
+
+      # @statusBar = LLibPlus::StatusBar.new
+      # @globalContainer.pack_start(Gtk::Separator.new(:horizontal), {
+      #   :resize => :true,
+      #   :shrink => :true,
+      #   :fill => :true,
+      #   :padding => 0
+      # })
+      # @globalContainer.pack_start(@statusBar, {
+      #   :resize => :true,
+      #   :shrink => :true,
+      #   :fill => true,
+      #   :padding => 0
+      # })
     end
 
     def create_menu_bar

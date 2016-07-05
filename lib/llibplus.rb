@@ -73,6 +73,7 @@ module LLibPlus
     def initialize
       @parser = LLibPlus::Parser.new
       @options = @parser.parse!
+      $options = @options
 
       LLibPlus::Logger.init(@options[:loglevel] || :WARN)
 
@@ -83,6 +84,7 @@ module LLibPlus
     end
 
     def run!
+      Gdk.threads_init
       @win.run!
     end
   end

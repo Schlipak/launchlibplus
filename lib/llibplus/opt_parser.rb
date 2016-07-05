@@ -32,6 +32,10 @@ module LLibPlus
             raise LLibPlus::InvalidLogLevel.new, "Invalid log level :#{v}" unless ::Logger::Severity.constants.include? v
             @options[:loglevel] = v
           end
+
+          opts.on('--backtrace', 'Show the exception backtrace') do |v|
+            @options[:backtrace] = v
+          end
         end
         @parser.parse!
       rescue StandardError => e
