@@ -50,7 +50,7 @@ module LLibPlus
 
     def initialize
       super
-      self.set_size_request 300, -1
+      self.set_size_request 400, -1
       self.border_width = 10
 
       @container = Gtk::Box.new :vertical
@@ -66,7 +66,11 @@ module LLibPlus
         @stackSwitcher,
         :padding => 10
       )
-      @container.pack_start @stack
+      @container.pack_start(
+        @stack,
+        :expand => true,
+        :fill => true
+      )
     end
 
     def add_logo_background
@@ -91,7 +95,7 @@ module LLibPlus
         newPage[:name] = name
 
         newPage[:window] = Gtk::ScrolledWindow.new(nil, nil)
-        newPage[:window].vexpand = true
+        newPage[:window].expand = true
         newPage[:window].set_kinetic_scrolling true
 
         newPage[:content] = Gtk::Box.new :vertical
@@ -114,12 +118,19 @@ module LLibPlus
       end
     end
 
+    def reset_scroll
+      @stack.children.each do |child|
+        child.vadjustment.set_value 0
+      end
+    end
+
     def stack_visible=(b)
       raise ArgumentError, "Unsupported argument type #{b.class.class}:#{b.class}" unless [true, false].include? b
       if b
-        @container.show_all
+        @stack.show_all
+        self.reset_scroll
       else
-        @container.hide
+        @stack.hide
       end
     end
   end

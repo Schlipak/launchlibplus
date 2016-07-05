@@ -40,7 +40,7 @@ module LLibPlus
 
         pixbuf = Gdk::Pixbuf.new entry
         SVG_SCALES.each do |key, scale|
-          if File.extname(entry) == '.svg' then
+          if File.extname(entry) == '.svg'
             pixbuf = Gdk::Pixbuf.new entry, scale, scale
           end
 

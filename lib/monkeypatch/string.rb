@@ -39,8 +39,8 @@ class String
   def getColorCode(h = {})
     code = "\e["
     options = []
-    if not h[:mode].nil? then
-      if h[:mode].is_a? Array then
+    if not h[:mode].nil?
+      if h[:mode].is_a? Array
         h[:mode].each do |m|
           options << MODES_CODES[m.to_sym]
         end
@@ -50,10 +50,10 @@ class String
     else
       options << MODES_CODES[:default]
     end
-    if not h[:color].nil? then
+    if not h[:color].nil?
       options << FG_CODE + COLOR_CODES[h[:color]]
     end
-    if not h[:background].nil? then
+    if not h[:background].nil?
       options << BG_CODE + COLOR_CODES[h[:background]]
     end
     code += options.join(';') + 'm'
@@ -90,17 +90,17 @@ class String
   def powerline(opts = {})
     width = opts[:width] || 40
     arrowChar = RIGHT_ARROW
-    if opts[:arrow] == :left then
+    if opts[:arrow] == :left
       arrowChar = LEFT_ARROW
     end
-    if opts[:color] == :white then
+    if opts[:color] == :white
       code = self.getColorCode :mode => :bold, :color => :black, :background => :white
     else
       code = self.getColorCode :mode => [:bold, :reverse], :color => opts[:color]
     end
     arrowColor = self.getColorCode(:color => opts[:color], :mode => :bold)
-    if opts[:next] then
-      if opts[:arrow] == :left then
+    if opts[:next]
+      if opts[:arrow] == :left
         arrowColor = self.getColorCode(:background => opts[:color], :color => opts[:next], :mode => :bold)
       else
         arrowColor = self.getColorCode(:background => opts[:color], :color => opts[:next], :mode => [:bold, :reverse])

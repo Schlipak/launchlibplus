@@ -63,7 +63,7 @@ module LLibPlus
       @globalContainer.pack_start(@menuBar, {
         :expand => false,
         :fill => false,
-        :padding => 10
+        :padding => 0
       })
     end
 

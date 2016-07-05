@@ -51,8 +51,8 @@ module LLibPlus
     def update_desktop_entry(filename)
       version = nil
       File.new(filename).each_line do |line|
-        if /^\s*Exec=(.*)$/.match line then
-          if $1 != File.realpath(File.join(File.dirname(__FILE__), '../bin/llib+')) then
+        if /^\s*Exec=(.*)$/.match line
+          if $1 != File.realpath(File.join(File.dirname(__FILE__), '../bin/llib+'))
             File.truncate filename, 0
             return self.send(:create_desktop_entry, filename, 'Updating')
           end
