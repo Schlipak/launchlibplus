@@ -60,6 +60,7 @@ module LLibPlus
     def setup_layout
       self.resizable = false
       self.set_size_request 350, -1
+      self.border_width = 10
 
       if not [:info, :question].include? @level
         self.add_button 'Report on GitHub', :help
@@ -77,11 +78,11 @@ module LLibPlus
         end
       end
 
-      bbox = self.child.children.first.children.first
-      bbox.halign = Gtk::Align::END if bbox.is_a? Gtk::ButtonBox
+      @bbox = self.child.children.first.children.first
+      @bbox.halign = Gtk::Align::END if @bbox.is_a? Gtk::ButtonBox
 
-      vbox = Gtk::Box.new :vertical, 10
-      hbox = Gtk::Box.new :horizontal, 10
+      @vbox = Gtk::Box.new :vertical, 10
+      @hbox = Gtk::Box.new :horizontal, 10
       if LEVELS.dig(@level, :stock).nil?
         image = Gtk::Image.new(
           :icon_name => LEVELS.dig(@level, :icon_name),
@@ -93,36 +94,56 @@ module LLibPlus
           :size => Gtk::IconSize::DIALOG
         )
       end
-      hbox.pack_start image
+      @hbox.pack_start image
 
-      label = Gtk::Label.new @error.to_s
-      hbox.pack_start label
+      @label = Gtk::Label.new @error.to_s
+      @hbox.pack_start @label
 
-      expander = Gtk::Expander.new 'Developer info'
-      expander.expanded = false
+      @expander = Gtk::Expander.new 'Developer info'
+      @expander.expanded = false
+      @expanderBox = Gtk::Box.new :vertical, 5
+      @expander.add @expanderBox
 
-      callTraceWin = Gtk::ScrolledWindow.new
-      callTraceWin.set_min_content_height 100
-      callTraceWin.set_shadow_type :in
-      callTraceWin.set_policy :never, :automatic
+      @callTraceWin = Gtk::ScrolledWindow.new
+      @callTraceWin.set_min_content_height 100
+      @callTraceWin.set_shadow_type :in
+      @callTraceWin.set_policy :never, :automatic
 
-      callTraceText = Gtk::TextView.new
-      callTraceText.set_editable false
-      callTraceText.set_wrap_mode :word
-      callTraceText.buffer.text = "#{@error.debug}\n\n"
-      callTraceText.buffer.text += caller.join("\n")
+      @callTraceText = Gtk::TextView.new
+      @callTraceText.set_editable false
+      @callTraceText.set_wrap_mode :word
+      @callTraceText.buffer.text = "#{@error.debug}\n\n"
+      @callTraceText.buffer.text += caller.join("\n")
 
-      callTraceText.signal_connect 'button-release-event' do
-        callTraceText.select_all true
-        callTraceText.copy_clipboard
+      @callTraceWin.add @callTraceText
+      @expanderBox.pack_start(@callTraceWin, {
+        :expand => true,
+        :fill => true
+      })
+
+      @callTraceLink = Gtk::Label.new '<a href="#">Copy to clipboard</a>'
+      @callTraceLink.use_markup = true
+      @callTraceLink.halign = Gtk::Align::START
+      @callTraceLink.signal_connect 'activate-link' do
+        @callTraceText.select_all true
+        @callTraceText.copy_clipboard
       end
+      @expanderBox.pack_start(@callTraceLink, {
+        :expand => false,
+        :fill => false,
+        :shrink => true
+      })
 
-      callTraceWin.add callTraceText
-      expander.add callTraceWin
-
-      vbox.pack_start(hbox, :expand => false, :fill => false)
-      vbox.pack_start(expander, :expand => true, :fill => true)
-      self.child.add(vbox)
+      @vbox.pack_start(@hbox, {
+        :expand => false,
+        :fill => false
+      })
+      @vbox.pack_start(@expander, {
+        :expand => true,
+        :fill => true,
+        :padding => 10
+      })
+      self.child.add(@vbox)
     end
 
     def run!
