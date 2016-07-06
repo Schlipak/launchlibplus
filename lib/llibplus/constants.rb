@@ -7,4 +7,10 @@ module LLibPlus
   LINK_WEBSITE        ||= 'https://launchlibrary.net/'.freeze
   LINK_REPORT_ISSUES  ||= 'https://github.com/Schlipak/launchlibplus/issues'.freeze
 
+  EXIT_MESSAGES ||= [
+    'じゃあまたね！',
+    'A plus ma poule!',
+    'See ya around!',
+    '👋👋'
+  ].freeze
 end
