@@ -36,7 +36,7 @@ module LLibPlus
         next if OS.windows? and File.extname(entry) == '.svg'
 
         @@resources[name.to_sym] = Hash.new
-        LLibPlus::Logger.debug "Create resource ID :#{name.to_sym}"
+        LLibPlus::Logger.debug "Registering resource :#{name.to_sym}"
 
         pixbuf = Gdk::Pixbuf.new entry
         SVG_SCALES.each do |key, scale|

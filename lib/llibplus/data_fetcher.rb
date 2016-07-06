@@ -11,10 +11,12 @@ module LLibPlus
       th = ThreadManager.add do
         begin
           sleep 1
-          raise NotImplementedError.new, 'Fetch call not implemented'
+          raise LLibPlus::NotImplementedError.new('Fetch call not implemented', :warning)
         rescue Exception => e
-          JobQueue.push do
-            ErrorDialog.new(e, :warning).run!
+          unless e.is_a? GraphicError
+            JobQueue.push do
+              ErrorDialog.new(e, :error).run!
+            end
           end
         end
       end

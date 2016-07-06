@@ -1,43 +1,55 @@
 # -*- coding: utf-8 -*-
 
 module LLibPlus
-  class GenericError < StandardError
-    attr_reader :reference
-
-    def initialize(ref = nil)
-      @reference = ref
-    end
-  end
+  GenericError = Class.new(StandardError)
 
   InvalidLogLevel = Class.new(GenericError)
   DeveloperError = Class.new(GenericError)
-  GraphicError = Class.new(GenericError)
+
+  class GraphicError < GenericError
+    attr_reader :type
+
+    def initialize(msg, type = :error)
+      super(msg)
+      @type = type
+      JobQueue.push do
+        ErrorDialog.new(self, type).run!
+      end
+    end
+  end
+
+  NotImplementedError = Class.new(GraphicError)
 
   class ErrorDialog < Gtk::Dialog
     LEVELS = {
       :info => {
         :title => 'Info',
         :stock => Gtk::Stock::DIALOG_INFO,
+        :action => Gtk::Stock::OK,
         :func => :info
       },
       :question => {
         :title => 'Question',
         :stock => Gtk::Stock::DIALOG_QUESTION,
+        :action => Gtk::Stock::OK,
         :func => :info
       },
       :warning => {
         :title => 'Warning',
         :stock => Gtk::Stock::DIALOG_WARNING,
+        :action => Gtk::Stock::CLOSE,
         :func => :warn
       },
       :error => {
         :title => 'Error',
         :stock => Gtk::Stock::DIALOG_ERROR,
+        :action => Gtk::Stock::CLOSE,
         :func => :error
       },
       :fatal => {
         :title => 'Fatal Error',
         :icon_name => 'process-stop',
+        :action => Gtk::Stock::QUIT,
         :func => :fatal
       }
     }
@@ -65,7 +77,7 @@ module LLibPlus
       if not [:info, :question].include? @level
         self.add_button 'Report on GitHub', :help
       end
-      self.add_button Gtk::Stock::CLOSE, :accept
+      self.add_button LEVELS.dig(@level, :action), :accept
       self.signal_connect 'response' do |btn, resp|
         if resp == Gtk::ResponseType::HELP
           Launchy.open LINK_REPORT_ISSUES
@@ -99,6 +111,16 @@ module LLibPlus
       @label = Gtk::Label.new @error.to_s
       @hbox.pack_start @label
 
+      @vbox.pack_start(@hbox, {
+        :expand => false,
+        :fill => false
+      })
+
+      self.setup_calltrace unless [:info, :question].include?(@level)
+      self.child.add(@vbox)
+    end
+
+    def setup_calltrace
       @expander = Gtk::Expander.new 'Developer info'
       @expander.expanded = false
       @expanderBox = Gtk::Box.new :vertical, 5
@@ -127,6 +149,7 @@ module LLibPlus
       @callTraceLink.signal_connect 'activate-link' do
         @callTraceText.select_all true
         @callTraceText.copy_clipboard
+        true
       end
       @expanderBox.pack_start(@callTraceLink, {
         :expand => false,
@@ -134,16 +157,11 @@ module LLibPlus
         :shrink => true
       })
 
-      @vbox.pack_start(@hbox, {
-        :expand => false,
-        :fill => false
-      })
       @vbox.pack_start(@expander, {
         :expand => true,
         :fill => true,
         :padding => 10
       })
-      self.child.add(@vbox)
     end
 
     def run!
