@@ -17,19 +17,28 @@ module LLibPlus
     LEVELS = {
       :info => {
         :title => 'Info',
-        :stock => Gtk::Stock::DIALOG_INFO
+        :stock => Gtk::Stock::DIALOG_INFO,
+        :func => :info
       },
       :question => {
-        :title => '???',
-        :stock => Gtk::Stock::DIALOG_QUESTION
+        :title => 'Question',
+        :stock => Gtk::Stock::DIALOG_QUESTION,
+        :func => :info
       },
       :warning => {
         :title => 'Warning',
-        :stock => Gtk::Stock::DIALOG_WARNING
+        :stock => Gtk::Stock::DIALOG_WARNING,
+        :func => :warn
       },
       :error => {
         :title => 'Error',
-        :stock => Gtk::Stock::DIALOG_ERROR
+        :stock => Gtk::Stock::DIALOG_ERROR,
+        :func => :error
+      },
+      :fatal => {
+        :title => 'Fatal Error',
+        :icon_name => 'process-stop',
+        :func => :fatal
       }
     }
 
@@ -52,18 +61,38 @@ module LLibPlus
       self.resizable = false
       self.set_size_request 350, -1
 
+      if not [:info, :question].include? @level
+        self.add_button 'Report on GitHub', :help
+      end
       self.add_button Gtk::Stock::CLOSE, :accept
-      self.signal_connect 'response' do
-        self.destroy
+      self.signal_connect 'response' do |btn, resp|
+        if resp == Gtk::ResponseType::HELP
+          Launchy.open LINK_REPORT_ISSUES
+        else
+          self.destroy
+          if @level == :fatal
+            Gtk.main_quit
+            exit! 1
+          end
+        end
       end
 
-      vbox = Gtk::Box.new :vertical, 10
+      bbox = self.child.children.first.children.first
+      bbox.halign = Gtk::Align::END if bbox.is_a? Gtk::ButtonBox
 
+      vbox = Gtk::Box.new :vertical, 10
       hbox = Gtk::Box.new :horizontal, 10
-      image = Gtk::Image.new(
-        :stock => LEVELS.dig(@level, :stock),
-        :size => Gtk::IconSize::DIALOG
-      )
+      if LEVELS.dig(@level, :stock).nil?
+        image = Gtk::Image.new(
+          :icon_name => LEVELS.dig(@level, :icon_name),
+          :size => Gtk::IconSize::DIALOG
+        )
+      else
+        image = Gtk::Image.new(
+          :stock => LEVELS.dig(@level, :stock),
+          :size => Gtk::IconSize::DIALOG
+        )
+      end
       hbox.pack_start image
 
       label = Gtk::Label.new @error.to_s
@@ -83,6 +112,10 @@ module LLibPlus
       callTraceText.buffer.text = "#{@error.debug}\n\n"
       callTraceText.buffer.text += caller.join("\n")
 
+      callTraceText.signal_connect 'button-release-event' do
+        callTraceText.select_all true
+      end
+
       callTraceWin.add callTraceText
       expander.add callTraceWin
 
@@ -92,7 +125,7 @@ module LLibPlus
     end
 
     def run!
-      Logger.warn @error.debug
+      Logger.send(LEVELS.dig(@level, :func), @error.debug)
       self.show_all
     end
   end

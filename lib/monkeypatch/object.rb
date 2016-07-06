@@ -7,6 +7,15 @@ class Object
   end
 
   def debug
-    "#<#{self.class}:#{self.address} \"#{self.to_s}\">"
+    "#<#{self.class}:#{self.address}>#{' ' + self.to_s unless self.to_s.empty?}"
+  end
+end
+
+module AppObject
+  def method_missing(method, *args)
+    err = "Undefined method #{self.class}##{method}(#{args.join(', ')})"
+    LLibPlus::JobQueue.push do
+      LLibPlus::ErrorDialog.new(err, :fatal).run!
+    end
   end
 end

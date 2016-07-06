@@ -118,7 +118,7 @@ module LLibPlus
         dialog.license = File.read(File.join(File.dirname(__FILE__), '../../LICENSE'))
         dialog.copyright = "© 2016-2017"
         dialog.comments = 'Gtk+ Ruby application for LaunchLibrary.net'
-        dialog.website = 'https://launchlibrary.net/'
+        dialog.website = LINK_WEBSITE
         dialog.logo = ResManager.get_pixbuf(:icon_svg, :big) || ResManager.get_pixbuf(:icon_png)
 
         dialog.run
@@ -142,14 +142,14 @@ module LLibPlus
 
       @issueButton = Gtk::Button.new(:label => 'Open an issue on Github')
       @issueButton.signal_connect 'clicked' do
-        Launchy.open 'https://github.com/Schlipak/launchlibplus/issues'
+        Launchy.open LINK_REPORT_ISSUES
       end
       @issueButton.border_width = 2
       self.child.pack_start(@issueButton)
 
       @websiteButton = Gtk::Button.new(:label => 'LaunchLibrary.net')
       @websiteButton.signal_connect 'clicked' do
-        Launchy.open 'https://launchlibrary.net/'
+        Launchy.open LINK_WEBSITE
       end
       @websiteButton.border_width = 2
       self.child.pack_start(@websiteButton)

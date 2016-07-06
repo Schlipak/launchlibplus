@@ -11,8 +11,8 @@ module LLibPlus
       th = ThreadManager.add do
         begin
           sleep 1
-          raise Errno.const_get(Errno.constants.sample).new
-        rescue SystemCallError => e
+          raise NotImplementedError.new, 'Fetch call not implemented'
+        rescue Exception => e
           JobQueue.push do
             ErrorDialog.new(e, :warning).run!
           end

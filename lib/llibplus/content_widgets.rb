@@ -1,14 +1,28 @@
 # -*- coding: utf-8 -*-
 
+require_relative '../monkeypatch/object'
+
 module LLibPlus
   class ContentContainer < Gtk::Paned
+    include ::AppObject
+
     def initialize
       super(:horizontal)
       self.border_width = 0
     end
+
+    def to_s
+      ''
+    end
+
+    def to_str
+      self.debug
+    end
   end
 
   class Sidebar < Gtk::Box
+    include ::AppObject
+
     attr_reader :frame
 
     def initialize(mainContent)
@@ -44,8 +58,9 @@ module LLibPlus
   end
 
   class MainContent < Gtk::Overlay
-    attr_reader :stack, :logoImage
+    include ::AppObject
 
+    attr_reader :stack, :logoImage
     PAGES = ['Launches', 'Missions', 'Vehicules'].freeze
 
     def initialize
@@ -137,6 +152,8 @@ module LLibPlus
   end
 
   class StatusBar < Gtk::Box
+    include ::AppObject
+
     attr_reader :status, :progress
 
     def initialize
@@ -166,6 +183,7 @@ module LLibPlus
   end
 
   class Card < Gtk::Grid
+    include ::AppObject
     def initialize(*args)
       super
     end
