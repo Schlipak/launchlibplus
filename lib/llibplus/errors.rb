@@ -114,6 +114,7 @@ module LLibPlus
 
       callTraceText.signal_connect 'button-release-event' do
         callTraceText.select_all true
+        callTraceText.copy_clipboard
       end
 
       callTraceWin.add callTraceText
