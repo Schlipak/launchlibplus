@@ -1,25 +1,60 @@
 # -*- coding: utf-8 -*-
 
-module LLibPlus
-  class DataFetcher
-    def initialize
-      self
-    end
+require 'net/http'
+require 'cgi'
+require 'timeout'
+require 'json'
 
-    def fetch(request)
-      Logger.info "Fetching data #{request.debug}"
-      th = ThreadManager.add do
-        begin
-          sleep 1
-          raise LLibPlus::NotImplementedError.new('Fetch call not implemented', :warning)
-        rescue Exception => e
-          unless e.is_a? GraphicError
-            JobQueue.push do
-              ErrorDialog.new(e, :error).run!
+module LLibPlus
+  BASE_URL = 'https://launchlibrary.net/1.2/'.freeze
+
+  class DataFetcher
+    def self.fetch(query, params = {})
+      Logger.info "Fetching #{query}#{'?' unless params.empty?}#{URI.encode_www_form params}"
+      data = nil
+      begin
+        thr = ThreadManager.add do
+          begin
+            data = query_send(query, params)
+            raise DataFetchError.new('Error while fetching data') unless data[:done]
+            data = JSON.parse(data[:body].join)
+          rescue Exception => e
+            unless e.is_a? GraphicError
+              JobQueue.push do
+                ErrorDialog.new(e, :error).run!
+              end
             end
           end
         end
+      ensure
+        thr.join
+        return data
       end
+    end
+
+    private
+    def self.query_send(query, params)
+      data = {:body => [], :done => false}
+      begin
+        url = URI.parse(BASE_URL + query)
+        url.query = URI.encode_www_form params
+        status = Timeout::timeout(5, LLibPlus::TimeoutError) do
+          http = Net::HTTP.new url.host, url.port
+          http.use_ssl = true
+
+          http.request_get(url.path) do |resp|
+            resp.read_body do |frag|
+              data[:body] << frag
+            end
+          end
+          data[:done] = true
+        end
+      rescue ::EOFError => e
+        raise LLibPlus::EOFError.new
+      rescue Exception => e
+        raise e
+      end
+      data
     end
   end
 end

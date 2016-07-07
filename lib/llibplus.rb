@@ -63,7 +63,7 @@ module LLibPlus
       system("glib-compile-schemas", resource_path)
 
       at_exit do
-        LLibPlus::Logger.info EXIT_MESSAGES.sample
+        LLibPlus::Logger.info 'Exiting'
         FileUtils.rm_f([gresource_bin, gschema_bin])
       end
 

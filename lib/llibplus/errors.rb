@@ -19,6 +19,18 @@ module LLibPlus
   end
 
   NotImplementedError = Class.new(GraphicError)
+  DataFetchError = Class.new(GraphicError)
+  class TimeoutError < GraphicError
+    def initialize(*args)
+      super('Request timed out', :warning)
+    end
+  end
+
+  class EOFError < GraphicError
+    def initialize(*args)
+      super('Reached end of file (maybe wrong SSL settings)', :warning)
+    end
+  end
 
   class ErrorDialog < Gtk::Dialog
     LEVELS = {
@@ -108,7 +120,11 @@ module LLibPlus
       end
       @hbox.pack_start image
 
-      @label = Gtk::Label.new @error.to_s
+      errmsg = @error.to_s
+      if errmsg.initial != errmsg.initial.capitalize
+        errmsg = errmsg.capitalize
+      end
+      @label = Gtk::Label.new errmsg
       @hbox.pack_start @label
 
       @vbox.pack_start(@hbox, {

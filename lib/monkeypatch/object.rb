@@ -19,3 +19,11 @@ module AppObject
     end
   end
 end
+
+module Kernel
+  def __caller__(steps = 1)
+    call = caller.drop(steps).first
+    return nil unless call.respond_to? :[]
+    call[/[\w\-. ]+:\d+:in .*/]
+  end
+end

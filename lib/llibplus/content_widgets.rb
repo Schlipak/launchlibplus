@@ -45,12 +45,28 @@ module LLibPlus
         if @mainContent.logoImage.running?
           @mainContent.logoImage.stop
         else
+          @button.set_sensitive false
           @mainContent.stack_visible = false
           @mainContent.logoImage.start
           ThreadManager.add do
-            sleep 2
-            @mainContent.logoImage.stop
-            @mainContent.stack_visible = true
+            data = DataFetcher.fetch('launch/next/50')
+            page = @mainContent.get_clear_page 'Launches'
+            data['launches'].map! do |launch|
+              launch['isostart'] = DateTime.parse(launch['isostart'])
+              launch
+            end
+            data['launches'].sort! do |one, another|
+              one['isostart'] <=> another['isostart']
+            end
+            data['launches'].each do |launch|
+              btn = Gtk::Button.new(:label => launch['name'])
+              page[:content].pack_start(btn, :padding => 2)
+            end
+            JobQueue.push do
+              @mainContent.logoImage.stop
+              @mainContent.stack_visible = true
+              @button.set_sensitive true
+            end
           end
         end
       end
@@ -117,13 +133,26 @@ module LLibPlus
         30.times do
           btn = Gtk::Button.new(:label => name)
           newPage[:content].pack_start(btn, :padding => 2)
-          btn.signal_connect 'clicked' do
-            DataFetcher.new.fetch nil
-          end
         end
         newPage[:window].add newPage[:content]
         @stack.add_titled(newPage[:window], name, name)
       end
+    end
+
+    def get_page(name)
+      @pages.each do |page|
+        return page if page[:name] == name
+      end
+      nil
+    end
+
+    def get_clear_page(name)
+      page = self.get_page(name)
+      return nil if page.nil?
+      page[:content].children.each do |child|
+        page[:content].remove child
+      end
+      page
     end
 
     def init_stack_switcher
