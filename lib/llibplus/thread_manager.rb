@@ -5,6 +5,8 @@ module LLibPlus
     @@semaphone = Mutex.new
     @@threads = Array.new
 
+    Thread.abort_on_exception = true
+
     def self.add
       self.clean_threads
       @@semaphone.synchronize do

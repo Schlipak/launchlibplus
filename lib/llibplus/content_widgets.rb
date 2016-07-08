@@ -39,7 +39,7 @@ module LLibPlus
         :padding => 0
       })
 
-      @button = Gtk::Button.new :label => 'Animate'
+      @button = Gtk::Button.new :label => 'Fetch data'
       @frame.add @button
       @button.signal_connect 'clicked' do
         if @mainContent.logoImage.running?
@@ -51,16 +51,12 @@ module LLibPlus
           ThreadManager.add do
             data = DataFetcher.fetch('launch/next/50')
             page = @mainContent.get_clear_page 'Launches'
-            data['launches'].map! do |launch|
-              launch['isostart'] = DateTime.parse(launch['isostart'])
-              launch
-            end
-            data['launches'].sort! do |one, another|
-              one['isostart'] <=> another['isostart']
+            data['launches'].sort_by! do |launch|
+              launch['name']
             end
             data['launches'].each do |launch|
-              btn = Gtk::Button.new(:label => launch['name'])
-              page[:content].pack_start(btn, :padding => 2)
+              card = LLibPlus::Card.new launch
+              page[:content].add card
             end
             JobQueue.push do
               @mainContent.logoImage.stop
@@ -129,10 +125,9 @@ module LLibPlus
         newPage[:window].expand = true
         newPage[:window].set_kinetic_scrolling true
 
-        newPage[:content] = Gtk::Box.new :vertical
-        30.times do
-          btn = Gtk::Button.new(:label => name)
-          newPage[:content].pack_start(btn, :padding => 2)
+        newPage[:content] = Gtk::ListBox.new
+        newPage[:content].set_sort_func do |one, another|
+          one.date <=> another.date
         end
         newPage[:window].add newPage[:content]
         @stack.add_titled(newPage[:window], name, name)
@@ -211,10 +206,67 @@ module LLibPlus
     end
   end
 
-  class Card < Gtk::Grid
+  class Card < Gtk::ListBoxRow
     include ::AppObject
-    def initialize(*args)
-      super
+
+    attr_reader :type, :frame, :container, :date
+    def initialize(data, type = :launch)
+      super()
+      self.activatable = true
+      self.selectable = false
+
+      @data = data
+      @type = type
+      @labels = Hash.new
+
+      Logger.debug "Creating card #{self.debug}"
+
+      @date = Date.parse(@data['isonet'])
+      if self.tbd?
+        @date = Date.new(@date.year, @date.month, -1)
+      end
+
+      self.create_metamethods
+      self.setup_layout
+    end
+
+    def to_s
+      @data['name']
+    end
+
+    def tbd?
+      @data['tbdtime'] == 1
+    end
+
+    def create_metamethods
+      @data.each do |key, _|
+        self.class.send(:define_method, key.to_sym) do
+          @data[key]
+        end
+      end
+    end
+
+    def setup_layout
+      @frame = Gtk::Frame.new
+      self.add @frame
+      @container = Gtk::Box.new :vertical
+      @container.border_width = 10
+      @frame.add @container
+
+      @title = Gtk::Box.new :horizontal
+      @labels[:name] = Gtk::Label.new(self.name)
+      @title.pack_start(@labels[:name], {
+        :expand => false, :shrink => true, :fill => true, :padding => 0
+      })
+      @labels[:date] = Gtk::Label.new(@date.to_print(self.tbd?))
+      @title.pack_end @labels[:date]
+      @container.pack_start(@title, {
+        :expand => false, :shrink => true, :fill => true, :padding => 5
+      })
+
+      @container.pack_start(Gtk::Separator.new(:horizontal), {
+        :expand => true, :shrink => true, :fill => true, :padding => 0
+      })
     end
   end
 end
