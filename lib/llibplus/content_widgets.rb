@@ -301,9 +301,6 @@ module LLibPlus
       @links[:location].signal_connect 'button_press_event' do
         Launchy.open @locationLink
       end
-      @links[:location].signal_connect 'query_tooltip' do
-        puts "MDR"
-      end
       @locationContainer.pack_end(@links[:location])
 
       @container.pack_start(@locationContainer, {
