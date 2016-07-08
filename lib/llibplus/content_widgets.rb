@@ -209,6 +209,8 @@ module LLibPlus
   class Card < Gtk::ListBoxRow
     include ::AppObject
 
+    GOOGLE_MAPS_BASE_URL = 'https://www.google.com/maps/?q='
+
     attr_reader :type, :frame, :container, :date
     def initialize(data, type = :launch)
       super()
@@ -218,6 +220,7 @@ module LLibPlus
       @data = data
       @type = type
       @labels = Hash.new
+      @links = Hash.new
 
       Logger.debug "Creating card #{self.debug}"
 
@@ -265,6 +268,45 @@ module LLibPlus
       })
 
       @container.pack_start(Gtk::Separator.new(:horizontal), {
+        :expand => true, :shrink => true, :fill => true, :padding => 0
+      })
+
+      self.setup_location
+    end
+
+    def setup_location
+      @locationContainer = Gtk::Box.new :horizontal
+      @locationContainer.border_width = 5
+
+      @labels[:launchingFrom] = Gtk::Label.new('Launching from: ')
+      @locationContainer.pack_start(@labels[:launchingFrom])
+      location_text = if self.location['pads'].empty?
+        'Unknown pad'
+      else
+        self.location['pads'].first['name']
+      end
+      @labels[:location] = Gtk::Label.new(location_text)
+      @locationContainer.pack_start(@labels[:location])
+
+      @locationLink = GOOGLE_MAPS_BASE_URL + [
+        self.location['pads'].first['latitude'],
+        self.location['pads'].first['longitude']
+      ].join(',')
+      @locationIcon = Gtk::Image.new(
+      :icon_name => 'mark-location-symbolic',
+      :size => Gtk::IconSize::BUTTON
+      )
+      @links[:location] = Gtk::EventBox.new
+      @links[:location].add @locationIcon
+      @links[:location].signal_connect 'button_press_event' do
+        Launchy.open @locationLink
+      end
+      @links[:location].signal_connect 'query_tooltip' do
+        puts "MDR"
+      end
+      @locationContainer.pack_end(@links[:location])
+
+      @container.pack_start(@locationContainer, {
         :expand => true, :shrink => true, :fill => true, :padding => 0
       })
     end
