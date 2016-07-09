@@ -257,7 +257,8 @@ module LLibPlus
       @frame.add @container
 
       @title = Gtk::Box.new :horizontal
-      @labels[:name] = Gtk::Label.new(self.name)
+      @labels[:name] = Gtk::Label.new("<b>#{self.name.gsub('&', '&amp;')}</b>")
+      @labels[:name].use_markup = true
       @title.pack_start(@labels[:name], {
         :expand => false, :shrink => true, :fill => true, :padding => 0
       })
@@ -278,7 +279,8 @@ module LLibPlus
       @locationContainer = Gtk::Box.new :horizontal
       @locationContainer.border_width = 5
 
-      @labels[:launchingFrom] = Gtk::Label.new('Launching from: ')
+      @labels[:launchingFrom] = Gtk::Label.new('<i>Launching from:</i> ')
+      @labels[:launchingFrom].use_markup = true
       @locationContainer.pack_start(@labels[:launchingFrom])
       location_text = if self.location['pads'].empty?
         'Unknown pad'
@@ -301,11 +303,28 @@ module LLibPlus
       @links[:location].signal_connect 'button_press_event' do
         Launchy.open @locationLink
       end
+      self.setup_hover
       @locationContainer.pack_end(@links[:location])
 
       @container.pack_start(@locationContainer, {
         :expand => true, :shrink => true, :fill => true, :padding => 0
       })
+    end
+
+    def setup_hover
+      @@cursorPointer ||= Gdk::Cursor.new('pointer')
+      @@cursorDefault ||= Gdk::Cursor.new('default')
+
+      @links[:location].signal_connect 'enter_notify_event' do
+        toplevel = @links[:location].toplevel
+        win = toplevel.window
+        win.set_cursor @@cursorPointer
+      end
+      @links[:location].signal_connect 'leave_notify_event' do
+        toplevel = @links[:location].toplevel
+        win = toplevel.window
+        win.set_cursor @@cursorDefault
+      end
     end
   end
 end
