@@ -2,14 +2,14 @@
 
 module LLibPlus
   class ThreadManager
-    @@semaphone = Mutex.new
+    @@semaphore = Mutex.new
     @@threads = Array.new
 
     Thread.abort_on_exception = true
 
     def self.add
       self.clean_threads
-      @@semaphone.synchronize do
+      @@semaphore.synchronize do
         thr = Thread.new { yield Thread.current }
         @@threads << thr
         LLibPlus::Logger.debug "Creating #{thr} from #{__caller__(3)}"
@@ -19,14 +19,14 @@ module LLibPlus
 
     def self.register(thr)
       self.clean_threads
-      @@semaphone.synchronize do
+      @@semaphore.synchronize do
         @@threads << thr if thr.is_a? Thread
         LLibPlus::Logger.debug "Registering #{thr} from #{__caller__(3)}"
       end
     end
 
     def self.clean_threads
-      @@semaphone.synchronize do
+      @@semaphore.synchronize do
         @@threads.each do |thr|
           @@threads.delete(thr) unless thr.alive?
           LLibPlus::Logger.debug "Cleaning #{thr}" unless thr.alive?

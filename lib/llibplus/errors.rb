@@ -5,6 +5,7 @@ module LLibPlus
 
   InvalidLogLevel = Class.new(GenericError)
   DeveloperError = Class.new(GenericError)
+  FatalError = Class.new(GenericError)
 
   class GraphicError < GenericError
     attr_reader :type
@@ -12,9 +13,7 @@ module LLibPlus
     def initialize(msg, type = :error)
       super(msg)
       @type = type
-      JobQueue.push do
-        ErrorDialog.new(self, type).run!
-      end
+      ErrorDialogQueue.push [self, type]
     end
   end
 
@@ -29,6 +28,39 @@ module LLibPlus
   class EOFError < GraphicError
     def initialize(*args)
       super('Reached end of file (maybe wrong SSL settings)', :warning)
+    end
+  end
+
+  class ErrorDialogQueue
+    @@queue = Queue.new
+    @@semaphore = Mutex.new
+    @@worker = nil
+
+    def self.push(dialogData)
+      @@semaphore.synchronize do
+        @@queue << dialogData
+      end
+      self.start_worker if @@worker.nil? or !@@worker.alive?
+    end
+
+    def self.empty?
+      empty = false
+      @@semaphore.synchronize do
+        empty = @@queue.empty?
+      end
+      empty
+    end
+
+    def self.start_worker
+      @@worker = Thread.new do
+        until self.empty?
+          dialogData = @@semaphore.synchronize do
+            @@queue.pop
+          end
+          Logger.debug "ErrorDialogQueue: Pop #{dialogData}"
+          ErrorDialog.new(*dialogData).run!
+        end
+      end
     end
   end
 
@@ -77,6 +109,10 @@ module LLibPlus
       @error = err
       @level = level
 
+      @semaphore = Mutex.new
+      @semaphore.lock
+      @condvar = ConditionVariable.new
+
       self.setup_layout
       self
     end
@@ -90,20 +126,10 @@ module LLibPlus
         self.add_button 'Report on GitHub', :help
       end
       self.add_button LEVELS.dig(@level, :action), :accept
-      self.signal_connect 'response' do |btn, resp|
-        if resp == Gtk::ResponseType::HELP
-          Launchy.open LINK_REPORT_ISSUES
-        else
-          self.destroy
-          if @level == :fatal
-            Gtk.main_quit
-            exit! 1
-          end
-        end
-      end
 
       @bbox = self.child.children.first.children.first
       @bbox.halign = Gtk::Align::END if @bbox.is_a? Gtk::ButtonBox
+      self.setup_signals
 
       @vbox = Gtk::Box.new :vertical, 10
       @hbox = Gtk::Box.new :horizontal, 10
@@ -134,6 +160,20 @@ module LLibPlus
 
       self.setup_calltrace unless [:info, :question].include?(@level)
       self.child.add(@vbox)
+    end
+
+    def setup_signals
+      self.signal_connect 'response' do |response|
+        if response == Gtk::ResponseType::HELP
+          Launchy.open LINK_REPORT_ISSUES
+        else
+          @condvar.signal
+          if @level == :fatal
+            Gtk.main_quit
+            exit! 1
+          end
+        end
+      end
     end
 
     def setup_calltrace
@@ -183,6 +223,8 @@ module LLibPlus
     def run!
       Logger.send(LEVELS.dig(@level, :func), @error.debug)
       self.show_all
+      @condvar.wait @semaphore
+      self.destroy
     end
   end
 end

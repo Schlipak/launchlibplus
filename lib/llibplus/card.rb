@@ -11,6 +11,7 @@ module LLibPlus
     attr_reader :type, :frame, :container, :date
     def initialize(data, type = :launch)
       super()
+
       self.activatable = true
       self.selectable = false
 
@@ -47,21 +48,21 @@ module LLibPlus
     end
 
     def setup_layout
-      @frame = Gtk::Frame.new
-      self.add @frame
+      frame = Gtk::Frame.new
+      self.add frame
       @container = Gtk::Box.new :vertical
       @container.border_width = 10
-      @frame.add @container
+      frame.add @container
 
-      @title = Gtk::Box.new :horizontal
-      @labels[:name] = Gtk::Label.new("<b>#{self.name.gsub('&', '&amp;')}</b>")
-      @labels[:name].use_markup = true
-      @title.pack_start(@labels[:name], {
+      title = Gtk::Box.new :horizontal
+      name = Gtk::Label.new("<b>#{self.name.gsub('&', '&amp;')}</b>")
+      name.use_markup = true
+      title.pack_start(name, {
         :expand => false, :shrink => true, :fill => true, :padding => 0
       })
-      @labels[:date] = Gtk::Label.new(@date.to_print(self.tbd?))
-      @title.pack_end @labels[:date]
-      @container.pack_start(@title, {
+      date = Gtk::Label.new(@date.to_print(self.tbd?))
+      title.pack_end date
+      @container.pack_start(title, {
         :expand => false, :shrink => true, :fill => true, :padding => 5
       })
 
@@ -77,32 +78,32 @@ module LLibPlus
       @locationContainer = Gtk::Box.new :horizontal
       @locationContainer.border_width = 5
 
-      @labels[:launching_from] = Gtk::Label.new('<i>Launching from:</i> ')
-      @labels[:launching_from].use_markup = true
-      @locationContainer.pack_start(@labels[:launching_from])
-      location_text = if self.location['pads'].empty?
+      launching_from = Gtk::Label.new('<i>Launching from:</i> ')
+      launching_from.use_markup = true
+      @locationContainer.pack_start(launching_from)
+      location_label = if self.location['pads'].empty?
         'Unknown pad'
       else
         self.location['pads'].first['name']
       end
-      @labels[:location] = Gtk::Label.new(location_text)
-      @locationContainer.pack_start(@labels[:location])
+      location_label = Gtk::Label.new(location_label)
+      @locationContainer.pack_start(location_label)
 
-      @locationLink = GOOGLE_MAPS_BASE_URL + [
+      location_link = GOOGLE_MAPS_BASE_URL + [
         self.location['pads'].first['latitude'],
         self.location['pads'].first['longitude']
       ].join(',')
-      @locationIcon = Gtk::Image.new(
+      location_icon = Gtk::Image.new(
       :icon_name => 'mark-location-symbolic',
       :size => Gtk::IconSize::BUTTON
       )
-      @links[:location] = Gtk::EventBox.new
-      @links[:location].add @locationIcon
-      @links[:location].signal_connect 'button_press_event' do
-        Launchy.open @locationLink
+      @locationLink = Gtk::EventBox.new
+      @locationLink.add location_icon
+      @locationLink.signal_connect 'button_press_event' do
+        Launchy.open location_link
       end
       self.setup_hover
-      @locationContainer.pack_end(@links[:location])
+      @locationContainer.pack_end(@locationLink)
 
       @container.pack_start(@locationContainer, {
         :expand => true, :shrink => true, :fill => true, :padding => 0
@@ -113,13 +114,13 @@ module LLibPlus
       @@cursorPointer ||= Gdk::Cursor.new('pointer')
       @@cursorDefault ||= Gdk::Cursor.new('default')
 
-      @links[:location].signal_connect 'enter_notify_event' do
-        toplevel = @links[:location].toplevel
+      @locationLink.signal_connect 'enter_notify_event' do
+        toplevel = @locationLink.toplevel
         win = toplevel.window
         win.set_cursor @@cursorPointer
       end
-      @links[:location].signal_connect 'leave_notify_event' do
-        toplevel = @links[:location].toplevel
+      @locationLink.signal_connect 'leave_notify_event' do
+        toplevel = @locationLink.toplevel
         win = toplevel.window
         win.set_cursor @@cursorDefault
       end

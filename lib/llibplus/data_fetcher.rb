@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 require 'net/http'
+require 'openssl'
 require 'cgi'
 require 'timeout'
 require 'json'
@@ -9,7 +10,7 @@ module LLibPlus
   BASE_URL = 'https://launchlibrary.net/1.2/'.freeze
 
   class DataFetcher
-    def self.fetch(query, params = {})
+    def self.fetch(query, params, type = :launch)
       Logger.info "Fetching #{query}#{'?' unless params.empty?}#{URI.encode_www_form params}"
       data = nil
       begin
@@ -28,7 +29,7 @@ module LLibPlus
         end
       ensure
         thr.join
-        return data
+        return APIData.new(data, type)
       end
     end
 
@@ -41,6 +42,7 @@ module LLibPlus
         status = Timeout::timeout(5, LLibPlus::TimeoutError) do
           http = Net::HTTP.new url.host, url.port
           http.use_ssl = true
+          http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
           http.request_get(url.path) do |resp|
             resp.read_body do |frag|
@@ -52,7 +54,7 @@ module LLibPlus
       rescue ::EOFError => e
         raise LLibPlus::EOFError.new
       rescue Exception => e
-        raise e
+        raise GraphicError.new(e.message, :error)
       end
       data
     end

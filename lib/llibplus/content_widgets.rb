@@ -23,8 +23,22 @@ module LLibPlus
   class Sidebar < Gtk::Box
     include ::AppObject
 
-    attr_reader :frame
+    DEFAULT_FETCH_REQUESTS = {
+      :launch => {
+        :page => 'Launches',
+        :request => ['launch/next/50', {}]
+      },
+      :mission => {
+        :page => 'Missions',
+        :request => ['mission/next/50', {}]
+      },
+      :vehicule => {
+        :page => 'Vehicules',
+        :request => ['rocket', {:mode => 'verbose'}]
+      }
+    }
 
+    attr_reader :frame
     def initialize(mainContent)
       super(:vertical, 0)
       @mainContent = mainContent
@@ -32,6 +46,11 @@ module LLibPlus
       self.set_size_request 300, -1
       self.border_width = 10
 
+      setup_layout
+    end
+
+    private
+    def setup_layout
       @frame = Gtk::Frame.new 'Menu'
       self.pack_start(@frame, {
         :expand => true,
@@ -41,29 +60,43 @@ module LLibPlus
 
       @button = Gtk::Button.new :label => 'Fetch data'
       @frame.add @button
+
+      setup_signals
+    end
+
+    def setup_signals
       @button.signal_connect 'clicked' do
         if @mainContent.logoImage.running?
           @mainContent.logoImage.stop
         else
-          @button.set_sensitive false
-          @mainContent.stack_visible = false
-          @mainContent.logoImage.start
-          ThreadManager.add do
-            data = DataFetcher.fetch('launch/next/50')
-            page = @mainContent.get_clear_page 'Launches'
-            data['launches'].sort_by! do |launch|
-              launch['name']
-            end
-            data['launches'].each do |launch|
-              card = LLibPlus::Card.new launch
-              page[:content].add card
-            end
-            JobQueue.push do
-              @mainContent.logoImage.stop
-              @mainContent.stack_visible = true
-              @button.set_sensitive true
+          start_fetch
+        end
+      end
+    end
+
+    def start_fetch
+      @button.set_sensitive false
+      @mainContent.stack_visible = false
+      @mainContent.logoImage.start
+      ThreadManager.add do
+        threads = Array.new
+        DEFAULT_FETCH_REQUESTS.each do |key, req|
+          threads << ThreadManager.add do
+            data = DataFetcher.fetch(*req[:request], key)
+            Thread.kill(Thread.current) if key != :launch
+            Thread.kill(Thread.current) if data.nil?
+            @mainContent.clear req[:page]
+            data.sort!.each do |elem|
+              card = LLibPlus::Card.new elem, key
+              @mainContent.add(card, req[:page]) unless card.nil?
             end
           end
+        end
+        threads.each {|thr| thr.join}
+        JobQueue.push do
+          @mainContent.logoImage.stop
+          @mainContent.stack_visible = true
+          @button.set_sensitive true
         end
       end
     end
@@ -73,7 +106,17 @@ module LLibPlus
     include ::AppObject
 
     attr_reader :stack, :logoImage
-    PAGES = ['Launches', 'Missions', 'Vehicules'].freeze
+    PAGES = {
+      :launch => {
+        :title => 'Launches'
+      },
+      :mission => {
+        :title => 'Missions'
+      },
+      :vehicule => {
+        :title => 'Vehicules'
+      }
+    }.freeze
 
     def initialize
       super
@@ -116,7 +159,9 @@ module LLibPlus
       @stack.set_transition_duration 400
       @stack.set_transition_type Gtk::Stack::TransitionType::SLIDE_LEFT_RIGHT
 
-      PAGES.each do |name|
+      PAGES.each do |_, page|
+        name = page[:title]
+
         newPage = Hash.new
         @pages << newPage
         newPage[:name] = name
@@ -141,13 +186,17 @@ module LLibPlus
       nil
     end
 
-    def get_clear_page(name)
-      page = self.get_page(name)
+    def clear(name)
+      page = self.get_page name
       return nil if page.nil?
       page[:content].children.each do |child|
         page[:content].remove child
       end
-      page
+    end
+
+    def add(card, name = 'Launches')
+      page = self.get_page name
+      page[:content].add card
     end
 
     def init_stack_switcher
