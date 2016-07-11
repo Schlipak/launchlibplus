@@ -79,9 +79,9 @@ module LLibPlus
       @mainContent.stack_visible = false
       @mainContent.logoImage.start
       ThreadManager.add do
-        threads = Array.new
+        fetchThreads = Array.new
         DEFAULT_FETCH_REQUESTS.each do |key, req|
-          threads << ThreadManager.add do
+          fetchThreads << ThreadManager.add do
             data = DataFetcher.fetch(*req[:request], key)
             Thread.kill(Thread.current) if key != :launch
             Thread.kill(Thread.current) if data.nil?
@@ -92,7 +92,7 @@ module LLibPlus
             end
           end
         end
-        threads.each {|thr| thr.join}
+        fetchThreads.each { |thr| thr.join }
         JobQueue.push do
           @mainContent.logoImage.stop
           @mainContent.stack_visible = true

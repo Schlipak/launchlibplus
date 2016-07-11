@@ -27,7 +27,7 @@ module LLibPlus
 
   class EOFError < GraphicError
     def initialize(*args)
-      super('Reached end of file (maybe wrong SSL settings)', :warning)
+      super('Reached end of file (maybe wrong SSL settings)', :error)
     end
   end
 

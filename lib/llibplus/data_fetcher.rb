@@ -11,13 +11,15 @@ module LLibPlus
 
   class DataFetcher
     def self.fetch(query, params, type = :launch)
-      Logger.info "Fetching #{query}#{'?' unless params.empty?}#{URI.encode_www_form params}"
+      Logger.info "Fetching #{query}#{'?' unless params.empty?}#{URI.encode_www_form params} (:#{type})"
       data = nil
       begin
         thr = ThreadManager.add do
           begin
             data = query_send(query, params)
-            raise DataFetchError.new('Error while fetching data') unless data[:done]
+            unless data[:done]
+              raise DataFetchError.new('Error while fetching data')
+            end
             data = JSON.parse(data[:body].join)
           rescue Exception => e
             unless e.is_a? GraphicError
