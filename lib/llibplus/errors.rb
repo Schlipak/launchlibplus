@@ -163,7 +163,7 @@ module LLibPlus
     end
 
     def setup_signals
-      self.signal_connect 'response' do |response|
+      self.signal_connect 'response' do |_, response|
         if response == Gtk::ResponseType::HELP
           Launchy.open LINK_REPORT_ISSUES
         else
