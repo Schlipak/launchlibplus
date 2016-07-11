@@ -5,10 +5,6 @@ require 'mono_logger'
 module LLibPlus
   class Logger
     def self.init(loglevel = :WARN)
-      # @@file = File.open(
-      #   File.join(Dir.home, 'llibplus.log'),
-      #   File::CREAT | File::WRONLY | File::APPEND
-      # )
       @@logger = ::MonoLogger.new STDOUT
       @@logger.level = ::MonoLogger.const_get loglevel
       @@logger.formatter = proc do |severity, datetime, progname, msg|

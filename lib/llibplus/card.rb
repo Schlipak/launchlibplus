@@ -5,38 +5,38 @@ require_relative '../monkeypatch/object'
 module LLibPlus
   class Card < Gtk::ListBoxRow
     include ::AppObject
+    attr_reader :type
 
-    GOOGLE_MAPS_BASE_URL = 'https://www.google.com/maps/?q='
+    TYPES = {
+      :launch => 'LLibPlus::LaunchCard',
+      :mission => 'LLibPlus::MissionCard',
+      :vehicule => 'LLibPlus::VehiculeCard'
+    }
 
-    attr_reader :type, :frame, :container, :date
+    def self.create(data, type = :launch)
+      begin
+        klass = Object.const_get TYPES[type]
+      rescue StandardError => e
+        ErrorDialogQueue.push [e.message, :fatal]
+        return nil
+      end
+      klass.new(data, type)
+    end
+
     def initialize(data, type = :launch)
       super()
-
       self.activatable = true
       self.selectable = false
 
       @data = data
       @type = type
-      @labels = Hash.new
-      @links = Hash.new
 
       Logger.debug "Creating card #{self.debug}"
-
-      @date = Date.parse(@data['isonet'])
-      if self.tbd?
-        @date = Date.new(@date.year, @date.month, -1)
-      end
-
       self.create_metamethods
-      self.setup_layout
     end
 
     def to_s
       @data['name']
-    end
-
-    def tbd?
-      @data['tbdtime'] == 1
     end
 
     def create_metamethods
@@ -45,6 +45,31 @@ module LLibPlus
           @data[key]
         end
       end
+    end
+  end
+
+  class LaunchCard < Card
+    GOOGLE_MAPS_BASE_URL = 'https://www.google.com/maps/?q='
+
+    attr_reader :date
+    def initialize(*args)
+      super
+      @date = Date.parse(@data['isonet'])
+      if self.tbd?
+        @date = Date.new(@date.year, @date.month, -1)
+      end
+
+      self.setup_layout
+      self
+    end
+
+    def tbd?
+      @data['tbdtime'] == 1
+    end
+
+    def <=>(other)
+      return nil unless other.is_a? self.class
+      self.date <=> other.date
     end
 
     def setup_layout
@@ -130,9 +155,9 @@ module LLibPlus
       @missionContainer = Gtk::Box.new :horizontal
       @missionContainer.border_width = 5
 
-      @labels[:primary_mission] = Gtk::Label.new('<i>Primary Mission:</i> ')
-      @labels[:primary_mission].use_markup = true
-      @missionContainer.pack_start(@labels[:primary_mission])
+      primary_mission_label = Gtk::Label.new('<i>Primary Mission:</i> ')
+      primary_mission_label.use_markup = true
+      @missionContainer.pack_start(primary_mission_label)
 
       mission_name = if self.missions.empty?
         'Unknown mission'
@@ -145,12 +170,66 @@ module LLibPlus
         self.missions.first['description']
       end
 
-      @labels[:mission] = Gtk::Label.new("#{mission_name}#{"\n" unless mission_desc.empty?}#{mission_desc}")
-      @labels[:mission].set_line_wrap true
-      @missionContainer.pack_start(@labels[:mission])
+      mission_desc_label = Gtk::Label.new("#{mission_name}#{"\n" unless mission_desc.empty?}#{mission_desc}")
+      mission_desc_label.set_line_wrap true
+      @missionContainer.pack_start(mission_desc_label)
 
       @container.pack_start(@missionContainer, {
         :expand => true, :shrink => true, :fill => true, :padding => 0
+      })
+    end
+  end
+
+  class MissionCard < Card
+    def initialize(*args)
+      super
+      self.setup_layout
+      self
+    end
+
+    def <=>(other)
+      return nil unless other.is_a? self.class
+      self.name <=> other.name
+    end
+
+    def setup_layout
+      frame = Gtk::Frame.new
+      self.add frame
+      @container = Gtk::Box.new :vertical
+      @container.border_width = 10
+      frame.add @container
+
+      name = Gtk::Label.new("<b>#{self.name.gsub('&', '&amp;')}</b>")
+      name.use_markup = true
+      @container.pack_start(name, {
+        :expand => false, :shrink => true, :fill => true, :padding => 0
+      })
+    end
+  end
+
+  class VehiculeCard < Card
+    def initialize(*args)
+      super
+      self.setup_layout
+      self
+    end
+
+    def <=>(other)
+      return nil unless other.is_a? self.class
+      self.name <=> other.name
+    end
+
+    def setup_layout
+      frame = Gtk::Frame.new
+      self.add frame
+      @container = Gtk::Box.new :vertical
+      @container.border_width = 10
+      frame.add @container
+
+      name = Gtk::Label.new("<b>#{self.name.gsub('&', '&amp;')}</b>")
+      name.use_markup = true
+      @container.pack_start(name, {
+        :expand => false, :shrink => true, :fill => true, :padding => 0
       })
     end
   end

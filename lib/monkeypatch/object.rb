@@ -14,6 +14,7 @@ end
 module AppObject
   def method_missing(method, *args)
     err = "Undefined method #{self.class}##{method}(#{args.join(', ')})"
+    LLibPlus::Logger.fatal err
     LLibPlus::JobQueue.push do
       LLibPlus::ErrorDialog.new(err, :fatal).run!
     end

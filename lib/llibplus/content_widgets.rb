@@ -83,11 +83,11 @@ module LLibPlus
         DEFAULT_FETCH_REQUESTS.each do |key, req|
           fetchThreads << ThreadManager.add do
             data = DataFetcher.fetch(*req[:request], key)
-            Thread.kill(Thread.current) if key != :launch
             Thread.kill(Thread.current) if data.nil?
             @mainContent.clear req[:page]
-            data.sort!.each do |elem|
-              card = LLibPlus::Card.new elem, key
+            data.sort! if key == :launch
+            data.each do |elem|
+              card = LLibPlus::Card.create elem, key
               @mainContent.add(card, req[:page]) unless card.nil?
             end
           end
@@ -172,7 +172,7 @@ module LLibPlus
 
         newPage[:content] = Gtk::ListBox.new
         newPage[:content].set_sort_func do |one, another|
-          one.date <=> another.date
+          one <=> another
         end
         newPage[:window].add newPage[:content]
         @stack.add_titled(newPage[:window], name, name)
