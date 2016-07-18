@@ -11,7 +11,7 @@ module LLibPlus
 
   class DataFetcher
     def self.fetch(query, params, type = :launch)
-      Logger.info "Fetching #{query}#{'?' unless params.empty?}#{URI.encode_www_form params} (:#{type})"
+      Logger.info "Fetching #{query}#{'?' unless params.empty?}#{URI.encode_www_form params} {:type => :#{type}}"
       data = nil
       begin
         thr = ThreadManager.add do
